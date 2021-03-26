@@ -5,7 +5,7 @@
 #include "partida.h"
 
 /*============================================================================*
- * Definição das variáveis globais (publicas ou privadas)      + edit               *
+ * Definição das variáveis globais (publicas ou privadas)                     *
  *============================================================================*/
 
 /**
