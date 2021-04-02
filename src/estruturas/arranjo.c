@@ -46,7 +46,7 @@ PUBLIC void arranjo_destruir(arranjo_t * arranjo)
  * @param arranjo  Ponteiro de um arranjo.
  * @param elemento Elemento a ser armazenado no arranjo.
  */
-PUBLIC void arranjo_colocar(arranjo_t * arranjo, void * elemento)
+PUBLIC void arranjo_colocar(arranjo_t * arranjo, void * elemento) // push_back
 {
 	if (arranjo_cheio(arranjo)) {
 		printf("tentou adicionar no arranjo, mas está cheio");
@@ -68,18 +68,50 @@ PUBLIC void arranjo_colocar(arranjo_t * arranjo, void * elemento)
  * @return Se o arranjo estiver vazio retorna NULL. Caso contrário, retorna
  * um elemento do arranjo.
  */
-PUBLIC void * arranjo_retirar(arranjo_t * arranjo)
+PUBLIC void * arranjo_retirar(arranjo_t * arranjo) // pop_back
 {
 	void * elemento = NULL;
 
 	if (arranjo_vazio(arranjo)) {
 		printf("tentou retirar do arranjo, mas está vazio");
 	} else {
-		elemento = arranjo->conteudo[arranjo->size];
+		elemento = arranjo->conteudo[arranjo->size - 1];
 		arranjo->size--;
 	}
 
     return elemento;
+}
+
+/*============================================================================*
+ * arranjo_at()                                                          *
+ *============================================================================*/
+
+PUBLIC void * arranjo_at(arranjo_t * arranjo, int index) { // at
+	void * elemento = NULL;
+
+	if (index > 0 && index < arranjo->size) {
+		elemento = arranjo->conteudo[index];
+	}
+
+	return elemento;
+}
+
+/*============================================================================*
+ * arranjo_pop()                                                          *
+ *============================================================================*/
+PUBLIC void * arranjo_pop(arranjo_t * arranjo, int index) { // pop
+	void * elemento = NULL;
+
+	if (index > 0 && index < arranjo->size) {
+		elemento = arranjo->conteudo[index];
+		arranjo->size--;
+
+		for (int i = index; i < arranjo->size; i++) {
+			arranjo->conteudo[i] = arranjo->conteudo[i + 1];
+		}
+	}
+
+	return elemento;
 }
 
 /*============================================================================*
@@ -92,7 +124,7 @@ PUBLIC void * arranjo_retirar(arranjo_t * arranjo)
  * @param arranjo  Ponteiro de um arranjo.
  * @param valor    Elemento a ser removido.
  */
-PUBLIC void arranjo_remover(arranjo_t * arranjo, void * elemento)
+PUBLIC void arranjo_remover(arranjo_t * arranjo, void * elemento) // remove
 {
 	if (arranjo_vazio(arranjo)) {
 		printf("tentou remover do arranjo, mas já está vazio");

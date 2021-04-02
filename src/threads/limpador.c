@@ -49,6 +49,7 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
 	assert(equipamentos);
 
 	/* Requisita limpeza. */
+	// ver DELAY_LIMPADOR
 
 	/* Tira equipamentos do jogador. */
 	equipamentos->arma     = -1;

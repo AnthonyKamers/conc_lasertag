@@ -1,4 +1,5 @@
 #include "prateleira.h"
+#include "arranjo.h"
 
 /**
  * ATENÇÃO: Você pode adicionar novas funções com PUBLIC para serem usadas por
@@ -8,6 +9,9 @@
 /*============================================================================*
  * Definição das variáveis globais (publicas ou privadas)                     *
  *============================================================================*/
+// equipamentos_t prateleira_global;
+arranjo_t *prateleira_global;
+int qtdMax;
 
 /* Adicione variáveis locais. */
 
@@ -20,7 +24,20 @@
  */
 PUBLIC void prateleira_setup(void)
 {
-	/* Complemente se precisar. */
+	prateleira_global = malloc(sizeof(arranjo_t));
+	qtdMax = params->jogadores_por_equipe * 2;
+
+	arranjo_iniciar(prateleira_global, qtdMax);
+
+	for (int i = 0; i < qtdMax; i++) {
+		int id_now = i;
+		equipamentos_t *equipamentos_now = malloc(sizeof(equipamentos_t));
+		equipamentos_now->colete = id_now;
+		equipamentos_now->capacete = id_now;
+		equipamentos_now->arma = id_now;
+
+		arranjo_colocar(prateleira_global, (void *) equipamentos_now);
+	}
 }
 
 /*============================================================================*
@@ -36,6 +53,14 @@ PUBLIC void prateleira_cleanup(void)
 	 * ATENÇÃO: A quantidade de equipamentos de cada tipo ao final da execução
 	 * do programa deve ser igual a quantidade inicial.
 	 */
+	
+	if (arranjo_tamanho(prateleira_global) == qtdMax) {
+		plog("prateleira está com todos os itens");
+	} else {
+		plog("prateleira não está com todos os itens ---> falta coisa");
+	}
+
+	arranjo_destruir(prateleira_global);
 
 	/* Complemente se precisar. */
 }
@@ -53,7 +78,7 @@ PUBLIC void prateleira_cleanup(void)
  * necessários. Especificamente, um de cada tipo: colete, capacete e arma.
  *
  * Os equipamentos devem ter identificadores únicos variando dentro do intervalo:
- * 0 <= ID < 2 * params->jogadores_por_equipe.
+ * 0 <= ID < 2 * params->jogadores_por_equipe.		---> 
  *
  * ATENÇÃO: Um identificador deve ser único e não pode ser retornado se o mesmo
  * já estiver alocado para um jogador.
@@ -67,7 +92,15 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	/* Complemente se precisar. */
+	if (!arranjo_vazio(prateleira_global)) {
+		equipamentos_t *equipamento_da_prateleira = (equipamentos_t *) arranjo_retirar(prateleira_global);
+	
+		equipamentos->colete = equipamento_da_prateleira->colete;
+		equipamentos->capacete = equipamento_da_prateleira->capacete;
+		equipamentos->arma = equipamento_da_prateleira->arma;
+	} else {
+		plog("a prateleira está vazia, não pega mais daqui, não \n");
+	}
 }
 
 /*============================================================================*
@@ -89,6 +122,30 @@ PUBLIC void prateleira_libera_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	/* Complemente se precisar. */
+	if (!arranjo_cheio(prateleira_global)) {
+		int is_wrong = 0;
+
+		/*============================================================================*/
+		// fazer verificação de toda a prateleira (para ver se não está com o mesmo ID)
+		for (int i = 0; i < prateleira_global->size; i++) {
+			equipamentos_t *teste = (equipamentos_t *) arranjo_at(prateleira_global, i);
+			if (
+				teste->arma == equipamentos->arma ||
+				teste->capacete == equipamentos->capacete ||
+				teste->colete == equipamentos->colete
+			) {
+				plog("está com o mesmo ID, não vamos adicionar na prateleira");
+				is_wrong = 1;
+				break;
+			}
+		}
+
+		if (!is_wrong) {
+			arranjo_colocar(prateleira_global, equipamentos);
+		}
+
+	} else {
+		plog("prateleira já está cheia!! não coloquei mais coisas aqui \n");
+	}
 }
 
