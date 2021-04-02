@@ -30,6 +30,16 @@ PRIVATE void execucao_cleanup(void);
  * Objetivos: Alocar e configurar as variáveis globais e spawnar as threads
  * básicas do trabalho.
  */
+
+// void arranjo_print_jogador(arranjo_t * arranjo) {
+// 	for (int i = 0; i < arranjo->size; i++) {
+// 		jogador_t *jogador = (jogador_t *) arranjo->conteudo[i];
+// 		if (jogador != NULL) {
+// 			printf("%d \n", jogador->vida);
+// 		}
+// 	}
+// }
+
 int main(int argc, char *argv[])
 {
 	pthread_t tids[3];
@@ -65,6 +75,16 @@ int main(int argc, char *argv[])
 	execucao_cleanup();
 
 	plog("[main] Programa terminou com sucesso!\n");
+
+	// plog("teste do arranjo");
+	// jogador_t *jogador = malloc(sizeof(jogador_t));
+	// jogador->vida = 50;
+
+	// arranjo_t *arranjo = malloc(sizeof(arranjo_t));
+	// arranjo_iniciar(arranjo, 2);
+	// arranjo_colocar(arranjo, (void *)jogador);
+	// arranjo_print_jogador(arranjo);
+	// arranjo_destruir(arranjo);
 
 	return (0);
 }

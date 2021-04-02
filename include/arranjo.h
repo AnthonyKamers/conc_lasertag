@@ -10,6 +10,7 @@
 	/**
 	 * @brief Estrutura de um arranjo genérico.
 	 */
+
 	typedef struct
 	{
 		/**
@@ -18,7 +19,9 @@
 		 * usados (fila, pilha, lista, ...). Você poderá implementar a estrutura de
 		 * dados que achar mais adequada para o trabalho. 
 		 */
-
+		void **conteudo;
+		int size;
+		int capacidade;
 	} arranjo_t;
 
 	/*============================================================================*
@@ -32,6 +35,7 @@
 	EXTERN void * arranjo_consultar(arranjo_t * arranjo, int posicao);
 	EXTERN void arranjo_remover(arranjo_t * arranjo, void * valor);
 	EXTERN int arranjo_vazio(arranjo_t * arranjo);
+	EXTERN int arranjo_cheio(arranjo_t *arranjo);
 	EXTERN int arranjo_tamanho(arranjo_t * arranjo);
 
 	/*============================================================================*

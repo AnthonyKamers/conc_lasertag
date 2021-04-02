@@ -17,7 +17,9 @@
  */
 PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade)
 {
-	/* Implemente se for usar. */
+	arranjo->capacidade = capacidade;
+	arranjo->size = 0;
+	arranjo->conteudo = malloc(sizeof(arranjo_t) * capacidade);
 }
 
 /*============================================================================*
@@ -31,7 +33,7 @@ PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade)
  */
 PUBLIC void arranjo_destruir(arranjo_t * arranjo)
 {
-	/* Implemente se for usar. */
+	free(arranjo->conteudo);
 }
 
 /*============================================================================*
@@ -46,7 +48,12 @@ PUBLIC void arranjo_destruir(arranjo_t * arranjo)
  */
 PUBLIC void arranjo_colocar(arranjo_t * arranjo, void * elemento)
 {
-	/* Implemente se for usar. */
+	if (arranjo_cheio(arranjo)) {
+		printf("tentou adicionar no arranjo, mas está cheio");
+	} else {
+		arranjo->conteudo[arranjo->size] = elemento;
+		arranjo->size++;
+	}
 }
 
 /*============================================================================*
@@ -65,7 +72,12 @@ PUBLIC void * arranjo_retirar(arranjo_t * arranjo)
 {
 	void * elemento = NULL;
 
-	/* Implemente se for usar. */
+	if (arranjo_vazio(arranjo)) {
+		printf("tentou retirar do arranjo, mas está vazio");
+	} else {
+		elemento = arranjo->conteudo[arranjo->size];
+		arranjo->size--;
+	}
 
     return elemento;
 }
@@ -82,7 +94,17 @@ PUBLIC void * arranjo_retirar(arranjo_t * arranjo)
  */
 PUBLIC void arranjo_remover(arranjo_t * arranjo, void * elemento)
 {
-	/* Implemente se for usar. */
+	if (arranjo_vazio(arranjo)) {
+		printf("tentou remover do arranjo, mas já está vazio");
+	} else {
+		// loop pelo arranjo
+		for (int i = 0; i < arranjo->capacidade; i++) {
+			if (arranjo->conteudo[i] == elemento) {
+				// fazer alguma coisa aqui
+				break;
+			}
+		}
+	}
 }
 
 /*============================================================================*
@@ -98,9 +120,12 @@ PUBLIC void arranjo_remover(arranjo_t * arranjo, void * elemento)
  */
 PUBLIC int arranjo_vazio(arranjo_t * arranjo)
 {
-	/* Implemente se for usar. */
+	return arranjo->size == 0 ? true : false;
+}
 
-    return (false);
+// arranjo cheio
+PUBLIC int arranjo_cheio(arranjo_t *arranjo) {
+	return arranjo->size == arranjo->capacidade;
 }
 
 /*============================================================================*
@@ -116,8 +141,6 @@ PUBLIC int arranjo_vazio(arranjo_t * arranjo)
  */
 PUBLIC int arranjo_tamanho(arranjo_t * arranjo)
 {
-	/* Implemente se for usar. */
-
-	return (0);
+	return arranjo->size;
 }
 

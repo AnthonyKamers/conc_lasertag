@@ -14,6 +14,7 @@
  *
  * @param jogadores_por_equipe Número de jogadores por equipe.
  */
+
 PUBLIC void equipe_setup(equipe_t * equipe, equipe_id_t id, int njogadores)
 {
 	assert(njogadores > 0);
