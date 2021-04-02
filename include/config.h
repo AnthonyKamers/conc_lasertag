@@ -77,19 +77,6 @@
 	#endif
 
 	/**
-	 * @brief Valores padrões de máximo de itens da prateleira.
-	 */
-	#ifndef DEFAULT_MAX_COLETE
-	#define DEFAULT_MAX_COLETE  100
-	#endif
-	#ifndef DEFAULT_MAX_CAPACETE
-	#define DEFAULT_MAX_CAPACETE  100
-	#endif
-	#ifndef DEFAULT_MAX_ARMA
-	#define DEFAULT_MAX_ARMA 100
-	#endif
-
-	/**
 	 * @brief Número padrão de partidas.
 	 */
 	#ifndef DEFAULT_PARTIDAS_MAX

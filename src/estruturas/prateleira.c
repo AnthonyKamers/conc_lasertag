@@ -9,11 +9,10 @@
 /*============================================================================*
  * Definição das variáveis globais (publicas ou privadas)                     *
  *============================================================================*/
-// equipamentos_t prateleira_global;
-arranjo_t *prateleira_global;
-int qtdMax;
 
 /* Adicione variáveis locais. */
+arranjo_t *prateleira_global;
+int qtdMax;
 
 /*============================================================================*
  * prateleira_setup()                                                         *
@@ -41,7 +40,7 @@ PUBLIC void prateleira_setup(void)
 }
 
 /*============================================================================*
- * prateleira_setup()                                                         *
+ * prateleira_cleanup()                                                         *
  *============================================================================*/
 
 /**

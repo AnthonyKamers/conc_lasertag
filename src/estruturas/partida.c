@@ -1,4 +1,5 @@
 #include "partida.h"
+#include "jogador.h"
 
 /**
  * ATENÇÃO: Você pode adicionar novas funções com PUBLIC para serem usadas por
@@ -140,7 +141,7 @@ PRIVATE void partida_print_resultado(int tempo_restante, int sobreviventes, part
 /**
  * @brief Verifica qual equipe venceu e imprime o resultado informando o tempo
  * restante da partida, a quantidade de sobreviventes na equipe vencedora (ou
- * em cada equipe se ouver empate) e o número da partida.
+ * em cada equipe se houver empate) e o número da partida.
  *
  * Condições de vitória:
  * - Se ambas as equipes tiverem a mesma quantidade de jogadores vivos, ocorre
@@ -151,9 +152,40 @@ PRIVATE void partida_print_resultado(int tempo_restante, int sobreviventes, part
  */
 PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 {
-	/* Implemente. */
+	// separar em equipes
+	arranjo_t *jogadoresA = &partida->equipe_a.jogadores;
+	arranjo_t *jogadoresB = &partida->equipe_b.jogadores;
 
-	if (false)
+	int mortosA = 0;
+	int mortosB = 0;
+
+	// pegar mortos de cada equipe
+	// equipe A
+	for (int i = 0; i < arranjo_tamanho(jogadoresA); i++) {
+		jogador_t *jogadorA = (jogador_t *) arranjo_at(jogadoresA, i);
+		if (jogadorA->status == JOGADOR_MORREU) mortosA++;
+	}
+	// equipe B
+	for (int i = 0; i < arranjo_tamanho(jogadoresB); i++) {
+		jogador_t *jogadorB = (jogador_t *) arranjo_at(jogadoresB, i);
+		if (jogadorB->status == JOGADOR_MORREU) mortosB++;
+	}
+
+	int vivosA = arranjo_tamanho(jogadoresA) - mortosA;
+	int vivosB = arranjo_tamanho(jogadoresB) - mortosB;
+	
+	if (vivosA == vivosB) {
+		// empate
+		partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EMPATOU);
+	} else if (vivosA == 0) {
+		// equipe B ganha
+		partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
+	} else if (vivosB == 0) {
+		// equipe A ganha
+		partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EQUIPE_A_VENCEU);
+	} else {
+		// resultado indefinido
 		partida_print_resultado(0, 0, PARTIDA_RESULTADO_INDEFINIDO);
+	}
 }
 
