@@ -58,6 +58,7 @@
 	 * coordenar as ações dos jogadores.
 	 */
 	EXTERN partida_t * partida;
+	EXTERN int tempo_partida;
 
 	/*============================================================================*
 	 * Funções padrão exportadas (utilizadas em arquivos que incluem esse .h)     *

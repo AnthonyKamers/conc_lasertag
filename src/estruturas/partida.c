@@ -19,6 +19,7 @@
  * @brief Definição de variáveis globais.
  */
 PUBLIC partida_t * partida;
+PUBLIC int tempo_partida;
 
 /*============================================================================*
  * partida_setup()                                                            *
@@ -41,6 +42,9 @@ PUBLIC void partida_setup(void)
 	 * Setup Atributos da partida.
 	 */
 	partida->status = PARTIDA_NAO_PREPARADA;
+
+	// settar tempo_partida
+	tempo_partida = 0;
 
 	/**
 	 * Complemente se precisar.
