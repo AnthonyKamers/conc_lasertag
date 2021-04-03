@@ -30,12 +30,12 @@ PUBLIC void prateleira_setup(void)
 
 	for (int i = 0; i < qtdMax; i++) {
 		int id_now = i;
-		equipamentos_t *equipamentos_now = malloc(sizeof(equipamentos_t));
-		equipamentos_now->colete = id_now;
-		equipamentos_now->capacete = id_now;
-		equipamentos_now->arma = id_now;
+		equipamentos_t equipamentos_now;
+		equipamentos_now.colete = id_now;
+		equipamentos_now.capacete = id_now;
+		equipamentos_now.arma = id_now;
 
-		arranjo_colocar(prateleira_global, (void *) equipamentos_now);
+		arranjo_colocar(prateleira_global, (void *) &equipamentos_now);
 	}
 }
 

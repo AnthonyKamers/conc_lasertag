@@ -152,27 +152,8 @@ PRIVATE void partida_print_resultado(int tempo_restante, int sobreviventes, part
  */
 PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 {
-	// separar em equipes
-	arranjo_t *jogadoresA = &partida->equipe_a.jogadores;
-	arranjo_t *jogadoresB = &partida->equipe_b.jogadores;
-
-	int mortosA = 0;
-	int mortosB = 0;
-
-	// pegar mortos de cada equipe
-	// equipe A
-	for (int i = 0; i < arranjo_tamanho(jogadoresA); i++) {
-		jogador_t *jogadorA = (jogador_t *) arranjo_at(jogadoresA, i);
-		if (jogadorA->status == JOGADOR_MORREU) mortosA++;
-	}
-	// equipe B
-	for (int i = 0; i < arranjo_tamanho(jogadoresB); i++) {
-		jogador_t *jogadorB = (jogador_t *) arranjo_at(jogadoresB, i);
-		if (jogadorB->status == JOGADOR_MORREU) mortosB++;
-	}
-
-	int vivosA = arranjo_tamanho(jogadoresA) - mortosA;
-	int vivosB = arranjo_tamanho(jogadoresB) - mortosB;
+	int vivosA = quantidade_vivos(partida->equipe_a);
+	int vivosB = quantidade_vivos(partida->equipe_b);
 	
 	if (vivosA == vivosB) {
 		// empate
@@ -189,3 +170,29 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 	}
 }
 
+PUBLIC int quantidade_vivos(equipe_t equipe) {
+	arranjo_t *jogadores = &equipe.jogadores;
+
+	int vivos = 0;
+
+	// pegar mortos da equipe
+	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
+		jogador_t *jogador = (jogador_t *) arranjo_at(jogadores, i);
+		if (jogador->status == JOGADOR_JOGANDO) vivos++;
+	}
+
+	return vivos;
+}
+
+PUBLIC int are_todos_esperando(equipe_t equipe) {
+	arranjo_t *jogadores = &equipe.jogadores;
+
+	int esperando = 0;
+
+	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
+		jogador_t *jogador = (jogador_t *) arranjo_at(jogadores, i);
+		if (jogador->status == JOGADOR_ESPERANDO) esperando++;
+	}
+
+	return arranjo_tamanho(jogadores) == esperando ? 1 : 0;
+}

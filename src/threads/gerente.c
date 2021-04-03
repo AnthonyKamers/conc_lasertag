@@ -57,8 +57,51 @@ PUBLIC void * gerente_fn(void * arg)
 {
 	plog("[gerente] Iniciou.\n");
 
-	if (false)
+	equipe_t equipeA = partida->equipe_a;
+	equipe_t equipeB = partida->equipe_b;
+
+	// se as equipes estiverem prontas -> inicia a partida
+	if (
+		(arranjo_tamanho(&equipeA.jogadores) == equipeA.capacidade) &&
+		(arranjo_tamanho(&equipeB.jogadores) == equipeB.capacidade) &&
+		partida->status == PARTIDA_NAO_PREPARADA
+	) {
+		partida->status = PARTIDA_PREPARADA;
+	}
+
+	// settar de PREPARADA para INICIADA [se todos jogadores estiverem esperando]
+	if (
+		are_todos_esperando(equipeA) &&
+		are_todos_esperando(equipeB) &&
+		partida->status == PARTIDA_PREPARADA
+	) {
+		partida->status = PARTIDA_INICIADA;
+	}
+
+	// enquanto houver tempo de partida e partida estiver rodando
+	//	-> cura periodicamente os jogadores
+	while (
+		params->partida_tempo_max > 0 &&
+		partida->status == PARTIDA_INICIADA &&
+		quantidade_vivos(equipeA) > 0 &&
+		quantidade_vivos(equipeB) > 0
+	) {
+		// espera delay_gerente e cura jogadores após isso
+		sleep(params->delay_gerente);
 		gerente_coordena_partida();
+	}
+
+	// se uma equipe está toda morta ou se o tempo acabou
+	//	-> setta partida para FINALIZADA
+	//	-> chama partida_nomeia_vencedores()
+	if (
+		quantidade_vivos(equipeA) == 0 ||
+		quantidade_vivos(equipeB) == 0 ||
+		params->partida_tempo_max <= 0
+	) {
+		partida->status = PARTIDA_FINALIZADA;
+		partida_nomeia_vencedores(params->partida_tempo_max);
+	}
 
 	return (NULL);
 }
@@ -73,8 +116,21 @@ PUBLIC void * gerente_fn(void * arg)
 PRIVATE int gerente_cura_jogadores(void)
 {
 	int curados = 0;
+	int qtdGeral = params->jogadores_por_equipe;
 
 	plog("[gerente] Curando jogadores.\n");
+
+	arranjo_t jogadoresA = partida->equipe_a.jogadores;
+	arranjo_t jogadoresB = partida->equipe_b.jogadores;
+
+	for (int i = 0; i < qtdGeral; i++) {
+		jogador_t *jogadorNowA = (jogador_t *) arranjo_at(&jogadoresA, i);
+		jogador_t *jogadorNowB = (jogador_t *) arranjo_at(&jogadoresB, i);
+
+		// curar jogadorA[i] e jogadorB[i]
+		jogadorNowA->vida += params->dano_cura;
+		jogadorNowB->vida += params->dano_cura;
+	}
 
 	return (curados);
 }

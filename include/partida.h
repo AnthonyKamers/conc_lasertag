@@ -74,6 +74,8 @@
 	EXTERN int partidas_restantes(void);
 	EXTERN partida_status_t partida_status(void);
 	EXTERN void partida_nomeia_vencedores(int);
+	EXTERN int quantidade_vivos(equipe_t equipe);
+	EXTERN int are_todos_esperando(equipe_t equipe);
 
 	/*============================================================================*
 	 * Funções extra exportadas (utilizadas em arquivos que incluem esse .h)      *
