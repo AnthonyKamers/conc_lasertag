@@ -76,6 +76,7 @@
 	EXTERN partida_status_t partida_status(void);
 	EXTERN void partida_nomeia_vencedores(int);
 	EXTERN int quantidade_vivos(equipe_t equipe);
+	EXTERN int quantidade_vivos_geral();
 	EXTERN int are_todos_esperando(equipe_t equipe);
 
 	/*============================================================================*

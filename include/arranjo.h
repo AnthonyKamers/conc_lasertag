@@ -37,7 +37,6 @@
 	EXTERN int arranjo_vazio(arranjo_t * arranjo);
 	EXTERN int arranjo_cheio(arranjo_t *arranjo);
 	EXTERN int arranjo_tamanho(arranjo_t * arranjo);
-	EXTERN void * arranjo_at(arranjo_t * arranjo, int index);
 	EXTERN void * arranjo_pop(arranjo_t * arranjo, int index);
 
 	/*============================================================================*

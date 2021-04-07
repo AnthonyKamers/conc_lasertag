@@ -21,6 +21,18 @@ int qtdMax;
 /**
  * @brief Configura os recursos locais se existirem.
  */
+
+// void arranjo_print_prateleira() {
+
+// 	for (int i = 0; i < prateleira_global->size; i++) {
+// 		equipamentos_t *equipamento = (equipamentos_t *) prateleira_global->conteudo[i];
+
+// 		if (equipamento != NULL) {
+// 			printf("colete = %d | capacete = %d | arma = %d \n", equipamento->colete, equipamento->capacete, equipamento->arma);
+// 		}
+// 	}
+// }
+
 PUBLIC void prateleira_setup(void)
 {
 	prateleira_global = malloc(sizeof(arranjo_t));
@@ -30,12 +42,13 @@ PUBLIC void prateleira_setup(void)
 
 	for (int i = 0; i < qtdMax; i++) {
 		int id_now = i;
-		equipamentos_t equipamentos_now;
-		equipamentos_now.colete = id_now;
-		equipamentos_now.capacete = id_now;
-		equipamentos_now.arma = id_now;
 
-		arranjo_colocar(prateleira_global, (void *) &equipamentos_now);
+		equipamentos_t *equipamentos_now = malloc(sizeof(equipamentos_t));
+		equipamentos_now->colete = id_now;
+		equipamentos_now->capacete = id_now;
+		equipamentos_now->arma = id_now;
+
+		arranjo_colocar(prateleira_global, (void *) equipamentos_now);
 	}
 }
 
@@ -54,9 +67,9 @@ PUBLIC void prateleira_cleanup(void)
 	 */
 	
 	if (arranjo_tamanho(prateleira_global) == qtdMax) {
-		plog("prateleira está com todos os itens");
+		plog("prateleira está com todos os itens \n");
 	} else {
-		plog("prateleira não está com todos os itens ---> falta coisa");
+		plog("prateleira não está com todos os itens ---> falta coisa \n");
 	}
 
 	arranjo_destruir(prateleira_global);
@@ -97,6 +110,8 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 		equipamentos->colete = equipamento_da_prateleira->colete;
 		equipamentos->capacete = equipamento_da_prateleira->capacete;
 		equipamentos->arma = equipamento_da_prateleira->arma;
+
+		free(equipamento_da_prateleira);
 	} else {
 		plog("a prateleira está vazia, não pega mais daqui, não \n");
 	}
@@ -127,13 +142,14 @@ PUBLIC void prateleira_libera_equipamentos(equipamentos_t * equipamentos)
 		/*============================================================================*/
 		// fazer verificação de toda a prateleira (para ver se não está com o mesmo ID)
 		for (int i = 0; i < prateleira_global->size; i++) {
-			equipamentos_t *teste = (equipamentos_t *) arranjo_at(prateleira_global, i);
+			equipamentos_t *teste = (equipamentos_t *) prateleira_global->conteudo[i];
+
 			if (
 				teste->arma == equipamentos->arma ||
 				teste->capacete == equipamentos->capacete ||
 				teste->colete == equipamentos->colete
 			) {
-				plog("está com o mesmo ID, não vamos adicionar na prateleira");
+				plog("está com o mesmo ID, não vamos adicionar na prateleira \n");
 				is_wrong = 1;
 				break;
 			}

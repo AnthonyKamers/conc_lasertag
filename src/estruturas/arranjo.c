@@ -17,6 +17,7 @@
  */
 PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade)
 {
+	// arranjo = (arranjo_t *) malloc(sizeof(arranjo_t));
 	arranjo->capacidade = capacidade;
 	arranjo->size = 0;
 	arranjo->conteudo = malloc(sizeof(arranjo_t) * capacidade);
@@ -33,6 +34,9 @@ PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade)
  */
 PUBLIC void arranjo_destruir(arranjo_t * arranjo)
 {
+	for (int i = 0; i < arranjo->size; i++) {
+		free(arranjo->conteudo[i]);
+	}
 	free(arranjo->conteudo);
 }
 
@@ -80,20 +84,6 @@ PUBLIC void * arranjo_retirar(arranjo_t * arranjo) // pop_back
 	}
 
     return elemento;
-}
-
-/*============================================================================*
- * arranjo_at()                                                          *
- *============================================================================*/
-
-PUBLIC void * arranjo_at(arranjo_t * arranjo, int index) { // at
-	void * elemento = NULL;
-
-	if (index > 0 && index < arranjo->size) {
-		elemento = arranjo->conteudo[index];
-	}
-
-	return elemento;
 }
 
 /*============================================================================*

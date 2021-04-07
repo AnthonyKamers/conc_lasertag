@@ -49,12 +49,23 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
 	assert(equipamentos);
 
 	/* Requisita limpeza. */
-	// ver DELAY_LIMPADOR
+	// salvo para chamar prateleira_libera_equipamento depois
+	equipamentos_t *equipamentos_hold = malloc(sizeof(equipamentos_t));
+	equipamentos_hold->arma = equipamentos->arma;
+	equipamentos_hold->capacete = equipamentos->capacete;
+	equipamentos_hold->colete = equipamentos->colete;
 
 	/* Tira equipamentos do jogador. */
 	equipamentos->arma     = -1;
 	equipamentos->capacete = -1;
 	equipamentos->colete   = -1;
+
+	// espera delay_limpador
+	sleep(params->delay_limpador);
+
+
+	// chama função de prateleira para devolver à prateleira 
+	prateleira_libera_equipamentos(equipamentos_hold);
 }
 
 /*============================================================================*
@@ -70,6 +81,14 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
  */
 PUBLIC void * limpador_fn(void * arg)
 {
+	// deixar thread ativa enquanto houver tempo em tempo_partida
+	// ou seja, enquanto tempo_partida < partida_tempo_max e
+	// houver jogadores vivos na partida
+	while (
+		tempo_partida > params->partida_tempo_max &&
+		quantidade_vivos_geral() > 0
+	) {}
+
 	return (NULL);
 }
 
