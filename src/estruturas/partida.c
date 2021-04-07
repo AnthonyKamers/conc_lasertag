@@ -210,15 +210,22 @@ PUBLIC int quantidade_vivos(equipe_t equipe) {
 	return vivos;
 }
 
-PUBLIC int are_todos_esperando(equipe_t equipe) {
-	arranjo_t *jogadores = &equipe.jogadores;
+PUBLIC int are_todos_esperando() {
+	arranjo_t *jogadoresA = (arranjo_t *) &partida->equipe_a.jogadores;
+	arranjo_t *jogadoresB = (arranjo_t *) &partida->equipe_b.jogadores;
 
-	int esperando = 0;
+	int esperandoA = 0;
+	int esperandoB = 0;
 
-	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
-		jogador_t *jogador = (jogador_t *) jogadores->conteudo[i];
-		if (jogador->status == JOGADOR_ESPERANDO) esperando++;
+	for (int i = 0; i < arranjo_tamanho(jogadoresA); i++) {
+		jogador_t *jogador = (jogador_t *) jogadoresA->conteudo[i];
+		if (jogador->status == JOGADOR_ESPERANDO) esperandoA++;
 	}
 
-	return arranjo_tamanho(jogadores) == esperando ? 1 : 0;
+	for (int i = 0; i < arranjo_tamanho(jogadoresB); i++) {
+		jogador_t *jogador = (jogador_t *) jogadoresB->conteudo[i];
+		if (jogador->status == JOGADOR_ESPERANDO) esperandoB++;
+	}
+
+	return (esperandoA + esperandoB) == 2 * params->jogadores_por_equipe ? 1 : 0;
 }

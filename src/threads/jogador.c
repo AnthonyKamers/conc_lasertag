@@ -152,14 +152,14 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 				int equipe = -1;
 
 				while (true) {
-					int equipe_now = equipe != -1 ? equipe : aleatorio(0, 1);
+					int equipe_now = equipe != -1 ? equipe : aleatorio(0, 2);
 
-					arranjo_t jogadores = equipe_now == 0 ? 
-						(arranjo_t) partida->equipe_a.jogadores :
-						(arranjo_t) partida->equipe_b.jogadores;
+					arranjo_t *jogadores = equipe_now == 0 ? 
+						(arranjo_t *) &partida->equipe_a.jogadores :
+						(arranjo_t *) &partida->equipe_b.jogadores;
 
-					if (arranjo_tamanho(&jogadores) <= params->jogadores_por_equipe) {
-						arranjo_colocar(&jogadores, jogador);  // coloca no arranjo de jogadores da equipe determinada
+					if (arranjo_tamanho(jogadores) < params->jogadores_por_equipe) {
+						arranjo_colocar(jogadores, jogador);  // coloca no arranjo de jogadores da equipe determinada
 						jogador->equipe = equipe_now == 0 ? EQUIPE_A : EQUIPE_B;  // setta equipe do jogador
 						break;  // sai do while
 					} else {
@@ -213,8 +213,12 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 	plog("[jogador %d] Esperando partida começar.\n", jogador->id);
 
 	/* Espere as duas equipes se formarem. */
+	// enquanto tiver pessoas que não estão esperando
+	while (!are_todos_esperando()) {}
 
-	plog("[jogador %d] Indo jogar.\n", jogador->id);
+	if (are_todos_esperando()) {
+		plog("[jogador %d] Indo jogar.\n", jogador->id);
+	}
 }
 
 /*============================================================================*

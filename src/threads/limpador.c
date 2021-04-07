@@ -61,7 +61,7 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
 	equipamentos->colete   = -1;
 
 	// espera delay_limpador
-	sleep(params->delay_limpador);
+	msleep(params->delay_limpador);
 
 
 	// chama função de prateleira para devolver à prateleira 
