@@ -22,6 +22,7 @@
 		void **conteudo;
 		int size;
 		int capacidade;
+		sem_t semaforo;
 	} arranjo_t;
 
 	/*============================================================================*

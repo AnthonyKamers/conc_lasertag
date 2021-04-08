@@ -48,6 +48,9 @@ PUBLIC void prateleira_setup(void)
 		equipamentos_now->capacete = id_now;
 		equipamentos_now->arma = id_now;
 
+		/* criar arranjos diferentes para cada equipamento (colete, capacete, arma) */
+		/* lista de inteiros */
+
 		arranjo_colocar(prateleira_global, (void *) equipamentos_now);
 	}
 }
@@ -106,7 +109,7 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 
 	if (!arranjo_vazio(prateleira_global)) {
 		equipamentos_t *equipamento_da_prateleira = (equipamentos_t *) arranjo_retirar(prateleira_global);
-	
+
 		equipamentos->colete = equipamento_da_prateleira->colete;
 		equipamentos->capacete = equipamento_da_prateleira->capacete;
 		equipamentos->arma = equipamento_da_prateleira->arma;

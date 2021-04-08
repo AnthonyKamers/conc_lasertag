@@ -147,7 +147,10 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 		if (
 			partida->status == PARTIDA_NAO_PREPARADA
 		) {
-
+			/*
+				aumentar concorrência
+				-> colocar proteção arranjo (exemlpo)
+			*/
 			pthread_mutex_lock(&sim->lock);
 				int equipe = -1;
 
@@ -166,7 +169,6 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 						equipe = equipe_now == 0 ? 1 : 0;  // se a equipe estiver cheia, setta flag para outra equipe
 					}
 				}
-
 			pthread_mutex_unlock(&sim->lock);
 		}
 	}

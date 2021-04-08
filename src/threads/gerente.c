@@ -57,8 +57,12 @@ PUBLIC void * gerente_fn(void * arg)
 {
 	plog("[gerente] Iniciou.\n");
 
-	// enquanto o tempo da partida não ultrapassar o tempo máximo
+	// enquanto o tempo da partida não ultrapassar o tempo máximo (para cada partida)
 	while (tempo_partida <= params->partida_tempo_max) {
+		// tick
+		msleep(params->delay_gerente);
+		tempo_partida += params->delay_gerente;
+
 		equipe_t equipeA = partida->equipe_a;
 		equipe_t equipeB = partida->equipe_b;
 
@@ -89,7 +93,7 @@ PUBLIC void * gerente_fn(void * arg)
 			(
 				(quantidade_vivos(equipeA) == 0 && arranjo_tamanho(&equipeA.jogadores) > 0) ||
 				(quantidade_vivos(equipeB) == 0 && arranjo_tamanho(&equipeB.jogadores) > 0) ||
-				tempo_partida <= params->partida_tempo_max
+				tempo_partida >= params->partida_tempo_max
 			)
 		) {
 			partida->status = PARTIDA_FINALIZADA;
@@ -158,7 +162,7 @@ PRIVATE void gerente_coordena_partida(void)
 		quantidade_vivos(equipeB) > 0
 	) {
 		// espera delay_gerente e cura jogadores após isso
-		sleep(params->delay_gerente);
+		msleep(params->delay_gerente);
 		gerente_cura_jogadores();
 	}
 
