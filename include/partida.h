@@ -47,9 +47,14 @@
 		 */
 		partida_status_t status;   /**< Estado da partida. */
 
-		sem_t semaforo_wait_partida;	// semáforo que vê que todos os jogadores estão esperando
-		sem_t semaforo_jogando;			// semáforo que conta quantidade de pessoas jogando
-		sem_t semaforo_saindo_partida;	// semáforo que conta quantos saíram da partida
+		// mutex para controlar qual jogador está higienizando os equipamentos
+		// limpador pega um equipamento por vez
+		pthread_mutex_t mutex_limpador;
+
+		// semáforos de controle da partida (jogadores)
+		sem_t semaforo_wait_partida;				// semáforo que vê que todos os jogadores estão esperando
+		sem_t semaforo_saindo_partida;				// semáforo que conta quantos saíram da partida
+		sem_t semaforo_equipamentos_disponiveis;	// semáforo que diz quantos equipamentos estão disponíveis na prateleira
 
 		int partida_now;				// número da partida que está jogando agora
 		int tempo_partida;				// tempo da partida que está jogando agora
@@ -59,6 +64,7 @@
 		// semáforos gerente
 		sem_t semaforo_gerente_espera_equipes;			// semáforo para ver quando o gerente deve avançar
 		sem_t semaforo_gerente_jogadores_esperando;		// semáforo para ver quando o gerente deve avançar
+		sem_t semaforo_gerente_comeca_partida;			// semáforo para ver quando o gerente deve começar nova partida
 
 		/**
 		 * @brief Complemente se precisar.

@@ -63,7 +63,6 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
 	// espera delay_limpador
 	msleep(params->delay_limpador);
 
-
 	// chama função de prateleira para devolver à prateleira 
 	prateleira_libera_equipamentos(equipamentos_hold);
 }

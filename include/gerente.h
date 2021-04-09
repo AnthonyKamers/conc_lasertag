@@ -23,6 +23,7 @@
 	EXTERN void * gerente_fn(void * arg);
 
 	EXTERN int gerente_partida_acabou(void);
+	EXTERN void gerente_reset_partida(void);
 
 	/*============================================================================*
 	 * Funções extra exportadas (utilizadas em arquivos que incluem esse .h)      *

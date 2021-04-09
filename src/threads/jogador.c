@@ -146,6 +146,9 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 	(arranjo_t *) &partida->equipe_a.jogadores :
 	(arranjo_t *) &partida->equipe_b.jogadores;
 
+	// tenta acessar semáforo de uma equipe aleatória
+	// se não conseguir, é porque está cheia,
+	// então, acessa a outra equipe
 	if (sem_trywait(&jogadores->semaforo)) {
 		arranjo_colocar(jogadores, jogador);
 		jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
@@ -188,6 +191,8 @@ PRIVATE void jogador_aloca_equipamento(jogador_t * jogador)
 {
 	jogador->status = JOGADOR_PEGANDO_EQUIPAMENTO;
 
+	// prateleira_pega_equipamentos é thread-safe
+	// só pega equipamento, se tiver disponível
 	prateleira_pega_equipamentos(&jogador->equipamentos);
 
 	plog("[jogador %d] Alocou os equipamentos [%d, %d, %d].\n",
@@ -220,17 +225,6 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 		if (partida->jogadores_esperando == 2 * params->jogadores_por_equipe) {
 			sem_post(&partida->semaforo_gerente_jogadores_esperando);
 		}
-
-	// sem_wait(&partida->semaforo_wait_partida);  // wait no semáforo da partida
-
-	/* Espere as duas equipes se formarem. */
-	// enquanto tiver pessoas que não estão esperando
-
-	// while (!are_todos_esperando()) {}
-
-	// if (are_todos_esperando()) {
-	// 	plog("[jogador %d] Indo jogar.\n", jogador->id);
-	// }
 }
 
 /*============================================================================*
@@ -254,9 +248,13 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 
 		plog("[jogador %d] Jogando.\n", jogador->id);
 
-		// enquanto partida estiver acontecendo
-		// faz jogador jogar (encontra inimigos e tira pontos)
-		while (partida->status == PARTIDA_INICIADA) {
+		// enquanto partida estiver acontecendo (status partida == PARTIDA_INICIADA)
+		// e status do jogador é NÃO MORTO:
+		// faz jogador jogar (encontra inimigos e tira vida aleatória)
+		while (
+			partida->status == PARTIDA_INICIADA &&
+			jogador->status != JOGADOR_MORREU
+		) {
 			int dano_now = aleatorio(params->dano_min, params->dano_max);
 
 			arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
@@ -270,40 +268,15 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 			inimigo_ataque->vida -= dano_now;
 
 			// se jogador morreu, setta para JOGADOR_MORREU
+			// adiciona em simulador a quantidade de mortos
 			if (inimigo_ataque->vida <= 0) {
 				inimigo_ataque->status = JOGADOR_MORREU;
+				sim->jogadores_mortos += 1;
 			}
 
 			// esperar tempo aleatório antes de atacar novamente
 			msleep(aleatorio(params->delay_min, params->delay_max));
 		}
-
-	// sem_wait(&partida->semaforo_jogando);  // incrementa contador do semáforo de semaforo_jogando
-
-	// /* Implemente a lógica do jogo aqui. */
-	// while (partida->status == PARTIDA_INICIADA) {
-	// 	int dano_now = aleatorio(params->dano_min, params->dano_max);
-
-	// 	arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
-	// 		(arranjo_t*) &partida->equipe_a.jogadores :
-	// 		(arranjo_t*) &partida->equipe_b.jogadores;
-	// 	arranjo_t jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
-		
-	// 	int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(&jogadores_adversarios));
-	// 	jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios.conteudo[inimigo_ataque_index];
-
-	// 	inimigo_ataque->vida -= dano_now;
-
-	// 	// se jogador morreu, setta para JOGADOR_MORREU
-	// 	if (inimigo_ataque->vida <= 0) {
-	// 		inimigo_ataque->status = JOGADOR_MORREU;
-	// 	}
-
-	// 	// esperar tempo aleatório antes de atacar novamente
-	// 	msleep(aleatorio(params->delay_min, params->delay_max));
-	// }
-	
-	// sem_post(&partida->semaforo_jogando);  // decrementa contador do semáforo de semaforo_jogando
 
 	plog("[jogador %d] Saindo do jogo.\n", jogador->id);
 }
@@ -363,6 +336,11 @@ PRIVATE void jogador_libera_equipamento(jogador_t * jogador)
 	plog("[jogador %d] Libera equipamentos.\n", jogador->id);
 
 	/* Libera equipamentos. */
-	limpador_requisita_limpeza(&jogador->equipamentos);
+
+	// travar mutex do limpador
+	// somente um jogador pode requisitar limpeza por vez
+	pthread_mutex_lock(&partida->mutex_limpador);
+		limpador_requisita_limpeza(&jogador->equipamentos);
+	pthread_mutex_unlock(&partida->mutex_limpador);
 }
 

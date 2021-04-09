@@ -48,12 +48,16 @@ PUBLIC void partida_setup(void)
 
 	// semáforos jogadores/partida
 	sem_init(&partida->semaforo_wait_partida, 0, 2 * params->jogadores_por_equipe);
-	sem_init(&partida->semaforo_jogando, 0, 2 * params->jogadores_por_equipe);
+	sem_init(&partida->semaforo_equipamentos_disponiveis, 0, 2 * params->jogadores_por_equipe);
 	sem_init(&partida->semaforo_saindo_partida, 0, 0);
 
-	// semáforos gerente
+	// semáforos gerente (binário [quando avançar para próxima etapa])
 	sem_init(&partida->semaforo_gerente_espera_equipes, 0, 0);
 	sem_init(&partida->semaforo_gerente_jogadores_esperando, 0, 0);
+	sem_init(&partida->semaforo_gerente_comeca_partida, 0, 0);
+
+	// mutex do limpador
+	pthread_mutex_init(&partida->mutex_limpador, NULL);
 
 	/**
 	 * Complemente se precisar.
@@ -78,12 +82,15 @@ PUBLIC void partida_cleanup(void)
 
 	// semáforos jogadores/partida
 	sem_destroy(&partida->semaforo_wait_partida);
-	sem_destroy(&partida->semaforo_jogando);
 	sem_destroy(&partida->semaforo_saindo_partida);
 
 	// semáforos gerente
 	sem_destroy(&partida->semaforo_gerente_espera_equipes);
 	sem_destroy(&partida->semaforo_gerente_jogadores_esperando);
+	sem_destroy(&partida->semaforo_gerente_comeca_partida);
+
+	// mutex limpador
+	pthread_mutex_destroy(&partida->mutex_limpador);
 
 	/**
 	 * Complemente se precisar.
