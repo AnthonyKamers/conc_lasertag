@@ -22,6 +22,8 @@
 	 */
 	EXTERN void * gerente_fn(void * arg);
 
+	EXTERN int gerente_partida_acabou(void);
+
 	/*============================================================================*
 	 * Funções extra exportadas (utilizadas em arquivos que incluem esse .h)      *
 	 *                                                                            *

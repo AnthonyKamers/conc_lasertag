@@ -41,10 +41,19 @@ PUBLIC void partida_setup(void)
 	 * Setup Atributos da partida.
 	 */
 	partida->status = PARTIDA_NAO_PREPARADA;
+	partida->partida_now = 1;
 	partida->tempo_partida = 0;
+	partida->jogadores_equipes = 0;
+	partida->jogadores_esperando = 0;
 
+	// semáforos jogadores/partida
 	sem_init(&partida->semaforo_wait_partida, 0, 2 * params->jogadores_por_equipe);
 	sem_init(&partida->semaforo_jogando, 0, 2 * params->jogadores_por_equipe);
+	sem_init(&partida->semaforo_saindo_partida, 0, 0);
+
+	// semáforos gerente
+	sem_init(&partida->semaforo_gerente_espera_equipes, 0, 0);
+	sem_init(&partida->semaforo_gerente_jogadores_esperando, 0, 0);
 
 	/**
 	 * Complemente se precisar.
@@ -67,7 +76,14 @@ PUBLIC void partida_cleanup(void)
 	equipe_cleanup(&partida->equipe_b);
 	free(partida);
 
+	// semáforos jogadores/partida
 	sem_destroy(&partida->semaforo_wait_partida);
+	sem_destroy(&partida->semaforo_jogando);
+	sem_destroy(&partida->semaforo_saindo_partida);
+
+	// semáforos gerente
+	sem_destroy(&partida->semaforo_gerente_espera_equipes);
+	sem_destroy(&partida->semaforo_gerente_jogadores_esperando);
 
 	/**
 	 * Complemente se precisar.

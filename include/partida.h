@@ -49,7 +49,16 @@
 
 		sem_t semaforo_wait_partida;	// semáforo que vê que todos os jogadores estão esperando
 		sem_t semaforo_jogando;			// semáforo que conta quantidade de pessoas jogando
-		int tempo_partida;
+		sem_t semaforo_saindo_partida;	// semáforo que conta quantos saíram da partida
+
+		int partida_now;				// número da partida que está jogando agora
+		int tempo_partida;				// tempo da partida que está jogando agora
+		int jogadores_equipes;			// contador de jogadores que entraram para equipes
+		int jogadores_esperando;		// contador de jogadores esperando
+
+		// semáforos gerente
+		sem_t semaforo_gerente_espera_equipes;			// semáforo para ver quando o gerente deve avançar
+		sem_t semaforo_gerente_jogadores_esperando;		// semáforo para ver quando o gerente deve avançar
 
 		/**
 		 * @brief Complemente se precisar.
@@ -63,7 +72,6 @@
 	 * coordenar as ações dos jogadores.
 	 */
 	EXTERN partida_t * partida;
-	EXTERN int tempo_partida;
 
 	/*============================================================================*
 	 * Funções padrão exportadas (utilizadas em arquivos que incluem esse .h)     *

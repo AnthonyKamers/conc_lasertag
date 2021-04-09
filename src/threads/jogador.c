@@ -149,6 +149,8 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 	if (sem_trywait(&jogadores->semaforo)) {
 		arranjo_colocar(jogadores, jogador);
 		jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
+
+		partida->jogadores_equipes++;
 	} else {
 		// se não conseguiu, tenta entrar na outra equipe
 		equipe = equipe == 0 ? 1 : 0;
@@ -160,6 +162,13 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 		sem_wait(&jogadores->semaforo);
 			arranjo_colocar(jogadores, jogador);
 			jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
+
+			partida->jogadores_equipes++;
+	}
+
+	// último jogador a entrar nas equipes vai settar semáforo do gerente para prosseguir
+	if (partida->jogadores_equipes == 2 * params->jogadores_por_equipe) {
+		sem_post(&partida->semaforo_gerente_espera_equipes);
 	}
 
 	plog("[jogador %d] Escolheu a equipe %d.\n", jogador->id, jogador->equipe);
@@ -203,6 +212,15 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 
 	plog("[jogador %d] Esperando partida começar.\n", jogador->id);
 
+	sem_wait(&partida->semaforo_wait_partida);
+		// incrementar contador de jogadores esperando
+		partida->jogadores_esperando++;
+
+		// último jogador a esperar, vai settar semáforo do gerente para avançar e iniciar o jogo
+		if (partida->jogadores_esperando == 2 * params->jogadores_por_equipe) {
+			sem_post(&partida->semaforo_gerente_jogadores_esperando);
+		}
+
 	// sem_wait(&partida->semaforo_wait_partida);  // wait no semáforo da partida
 
 	/* Espere as duas equipes se formarem. */
@@ -230,9 +248,35 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
  */
 PRIVATE void jogador_joga_partida(jogador_t * jogador)
 {
-	jogador->status = JOGADOR_JOGANDO;
+	sem_wait(&partida->semaforo_wait_partida);
 
-	plog("[jogador %d] Jogando.\n", jogador->id);
+		jogador->status = JOGADOR_JOGANDO;
+
+		plog("[jogador %d] Jogando.\n", jogador->id);
+
+		// enquanto partida estiver acontecendo
+		// faz jogador jogar (encontra inimigos e tira pontos)
+		while (partida->status == PARTIDA_INICIADA) {
+			int dano_now = aleatorio(params->dano_min, params->dano_max);
+
+			arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
+				(arranjo_t*) &partida->equipe_a.jogadores :
+				(arranjo_t*) &partida->equipe_b.jogadores;
+			arranjo_t jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
+			
+			int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(&jogadores_adversarios));
+			jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios.conteudo[inimigo_ataque_index];
+
+			inimigo_ataque->vida -= dano_now;
+
+			// se jogador morreu, setta para JOGADOR_MORREU
+			if (inimigo_ataque->vida <= 0) {
+				inimigo_ataque->status = JOGADOR_MORREU;
+			}
+
+			// esperar tempo aleatório antes de atacar novamente
+			msleep(aleatorio(params->delay_min, params->delay_max));
+		}
 
 	// sem_wait(&partida->semaforo_jogando);  // incrementa contador do semáforo de semaforo_jogando
 
@@ -276,7 +320,7 @@ PRIVATE void jogador_espera_partida_terminar(jogador_t * jogador)
 {
 	plog("[jogador %d] Esperando a partida terminar.\n", jogador->id);
 
-	// sem_wait(&partida->semaforo_jogando);
+	sem_wait(&partida->semaforo_saindo_partida);
 }
 
 /*============================================================================*
@@ -294,13 +338,13 @@ PRIVATE void jogador_sai_equipe(jogador_t * jogador)
 {
 	plog("[jogador %d] Libera vaga.\n", jogador->id);
 
-	/* Saia da equipe. */
-	// arranjo_t *arranjoJogadoresJogador = jogador->equipe == EQUIPE_A ? 
-	// 	(arranjo_t *) &partida->equipe_a.jogadores :
-	// 	(arranjo_t *) &partida->equipe_b.jogadores;
+	/* Sair da equipe. */
+	arranjo_t *arranjoJogadoresJogador = jogador->equipe == EQUIPE_A ? 
+		(arranjo_t *) &partida->equipe_a.jogadores :
+		(arranjo_t *) &partida->equipe_b.jogadores;
 
-	// arranjo_remover(arranjoJogadoresJogador, (void *) jogador);
-	// sem_post(&arranjoJogadoresJogador->semaforo);
+	arranjo_remover(arranjoJogadoresJogador, (void *) jogador);  // remove da equipe
+	sem_post(&arranjoJogadoresJogador->semaforo);  // abre espaço para conseguir entrar na equipe
 }
 
 /*============================================================================*
