@@ -38,9 +38,14 @@ PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade, int inicial_sem
 PUBLIC void arranjo_destruir(arranjo_t * arranjo)
 {
 	for (int i = 0; i < arranjo->size; i++) {
-		free(arranjo->conteudo[i]);
+		if (arranjo->conteudo[i] != NULL) {
+			free(arranjo->conteudo[i]);
+		}
 	}
-	free(arranjo->conteudo);
+	
+	if (arranjo->conteudo != NULL) {
+		free(arranjo->conteudo);
+	}
 }
 
 /*============================================================================*

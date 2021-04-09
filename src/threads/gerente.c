@@ -64,6 +64,8 @@ PUBLIC void * gerente_fn(void * arg)
 	while (partida->partida_now <= params->partidas_max) {
 		// esperar todos os jogadores entrarem em equipes
 		sem_wait(&partida->semaforo_gerente_espera_equipes);
+
+			plog("gerente liberou para PARTIDA_PREPARADA \n");
 			partida->status = PARTIDA_PREPARADA;
 
 			// esperar todos os jogadores estarem esperando
@@ -73,8 +75,9 @@ PUBLIC void * gerente_fn(void * arg)
 			sem_wait(&partida->semaforo_gerente_jogadores_esperando);
 				// dar (jogadores_por_equipe * 2) posts em partida->semaforo_wait_partida
 				// para permitir jogadores entrarem na partida e jogar
+				plog("gerente vai fazer 2 * params->jogadores_por_equipe posts em semaforo_wait_partida \n");
 				for (int i = 0; i < 2 * params->jogadores_por_equipe; i++) {
-					sem_post(&partida->semaforo_wait_partida);
+					sem_post(&partida->semaforo_comecar_partida);
 				}
 
 				// setta inicio da partida
@@ -91,9 +94,6 @@ PUBLIC void * gerente_fn(void * arg)
 				// resettar todas as configurações da partida
 				gerente_reset_partida();
 	}
-
-	if (false)
-		gerente_coordena_partida();
 
 	return (NULL);
 }
@@ -119,10 +119,17 @@ PRIVATE int gerente_cura_jogadores(void)
 		jogador_t *jogadorNowB = (jogador_t *) jogadoresB->conteudo[i];
 
 		// curar jogadorA[i] e jogadorB[i]
-		jogadorNowA->vida += params->dano_cura;
+		jogadorNowA->vida =
+			jogadorNowA->vida + params->dano_cura > 100 ?
+			100 : 
+			jogadorNowA->vida + params->dano_cura;
+
 		curados++;
 
-		jogadorNowB->vida += params->dano_cura;
+		jogadorNowB->vida =
+			jogadorNowB->vida + params->dano_cura > 100 ?
+			100 : 
+			jogadorNowB->vida + params->dano_cura;
 		curados++;
 	}
 
@@ -140,12 +147,20 @@ PUBLIC int gerente_partida_acabou(void) {
 
 	if (
 		partida->tempo_partida >= params->partida_tempo_max ||
-		quantidade_vivos(equipeA) > 0 ||
-		quantidade_vivos(equipeB) > 0
+		quantidade_vivos(equipeA) <= 0 ||
+		quantidade_vivos(equipeB) <= 0
 	) {
-		// acaba com a partida
+		// plog("gerente vai terminar partida | tempo_partida = %d | vivosA = %d | vivosB = %d \n",
+		// 	partida->tempo_partida,
+		// 	quantidade_vivos(equipeA),
+		// 	quantidade_vivos(equipeB)
+		// );
+		
+		// acaba com a partida (jogadores vão parar de jogar aqui)
 		partida->status = PARTIDA_FINALIZADA;
-		partida_nomeia_vencedores(partida->tempo_partida);
+
+		int tempo_restante = params->partida_tempo_max - partida->tempo_partida;
+		partida_nomeia_vencedores(tempo_restante);
 
 		// dar 2 * jogadores_por_equipe post em partida->semaforo_saindo_partida
 		// para liberar jogadores para conseguir sair da partida
@@ -181,6 +196,7 @@ PRIVATE void gerente_coordena_partida(void)
 	while (rodando) {
 		msleep(params->delay_gerente);
 		partida->tempo_partida += params->delay_gerente;
+		sim->tempo_jogado += params->delay_gerente;
 
 		int curados = gerente_cura_jogadores();
 		sim->jogadores_curados += curados;  // adiciona quantidade de curados à simulação

@@ -49,6 +49,7 @@ PUBLIC void partida_setup(void)
 	// semáforos jogadores/partida
 	sem_init(&partida->semaforo_wait_partida, 0, 2 * params->jogadores_por_equipe);
 	sem_init(&partida->semaforo_equipamentos_disponiveis, 0, 2 * params->jogadores_por_equipe);
+	sem_init(&partida->semaforo_comecar_partida, 0, 0);
 	sem_init(&partida->semaforo_saindo_partida, 0, 0);
 
 	// semáforos gerente (binário [quando avançar para próxima etapa])
@@ -83,6 +84,7 @@ PUBLIC void partida_cleanup(void)
 	// semáforos jogadores/partida
 	sem_destroy(&partida->semaforo_wait_partida);
 	sem_destroy(&partida->semaforo_saindo_partida);
+	sem_destroy(&partida->semaforo_comecar_partida);
 
 	// semáforos gerente
 	sem_destroy(&partida->semaforo_gerente_espera_equipes);
@@ -163,6 +165,20 @@ PRIVATE void partida_print_resultado(int tempo_restante, int sobreviventes, part
 	fflush(stdout);
 }
 
+int soma_vida_equipe(equipe_t equipe) {
+	int somaVida = 0;
+
+	arranjo_t *jogadores = (arranjo_t *) &equipe.jogadores;
+
+	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
+		jogador_t *jogador_now = (jogador_t *) jogadores->conteudo[i];
+
+		if (jogador_now->status == JOGADOR_JOGANDO) somaVida++;
+	}
+
+	return somaVida;
+}
+
 /*============================================================================*
  * partida_nomeia_vencedores()                                                *
  *============================================================================*/
@@ -183,27 +199,59 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 {
 	int vivosA = quantidade_vivos(partida->equipe_a);
 	int vivosB = quantidade_vivos(partida->equipe_b);
-	
-	if (vivosA == vivosB) {
-		// empate
-		partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EMPATOU);
-	} else if (vivosA == 0) {
-		// equipe B ganha
-		partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
-	} else if (vivosB == 0) {
-		// equipe A ganha
-		partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EQUIPE_A_VENCEU);
+
+	if (tempo_restante <= 0) {
+		// tempo estourou
+		if (vivosA > vivosB) {
+			// equipe A tem mais vivos do que equipe B -> equipe A ganhou
+			partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EQUIPE_A_VENCEU);
+
+		} else if (vivosB > vivosA) {
+			// equipe B tem mais vivos do que equipe A -> equipe B ganhou
+			partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
+
+		} else if (vivosA == vivosB) {
+			// se os vivos de cada equipe forem iguais -> ver qual equipe a soma da vida maior
+			int somaVidaA = soma_vida_equipe(partida->equipe_a);
+			int somaVidaB = soma_vida_equipe(partida->equipe_b);
+
+			if (somaVidaA > somaVidaB) {
+				// se a soma da vida da equipe A é maior do que a da equipe B -> equipe A ganhou
+				partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EQUIPE_A_VENCEU);
+
+			} else if (somaVidaB > somaVidaA) {
+				// se a soma da vida da equipe B é maior do que a da equipe A -> equipe B ganhou
+				partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
+
+			}
+		} else {
+			// resultado indefinido
+			partida_print_resultado(0, 0, PARTIDA_RESULTADO_INDEFINIDO);
+		}
 	} else {
-		// resultado indefinido
-		partida_print_resultado(0, 0, PARTIDA_RESULTADO_INDEFINIDO);
+		// se tempo não estourou e acabou -> alguma equipe venceu
+		if (vivosA == 0) {
+			// equipe B ganha
+			partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
+
+		} else if (vivosB == 0) {
+			// equipe A ganha
+			partida_print_resultado(tempo_restante, vivosA, PARTIDA_RESULTADO_EQUIPE_A_VENCEU);
+
+		} else {
+			// resultado indefinido
+			partida_print_resultado(0, 0, PARTIDA_RESULTADO_INDEFINIDO);
+		}
 	}
 }
 
-PUBLIC arranjo_t filtrar_jogadores(arranjo_t *jogadores, jogador_status_t status) {
-	arranjo_t jogadores_filtrados;
+PUBLIC arranjo_t *filtrar_jogadores(arranjo_t *jogadores, jogador_status_t status) {
+	arranjo_t *jogadores_filtrados = malloc(sizeof(arranjo_t));
+	arranjo_iniciar(jogadores_filtrados, params->jogadores_por_equipe, 0);
+
 	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
 		jogador_t *jogador_now = (jogador_t *) jogadores->conteudo[i];
-		if (jogador_now->status == status) arranjo_colocar(&jogadores_filtrados, jogador_now);
+		if (jogador_now->status == status) arranjo_colocar(jogadores_filtrados, jogador_now);
 	}
 
 	return jogadores_filtrados;

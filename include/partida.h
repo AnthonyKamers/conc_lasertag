@@ -53,6 +53,7 @@
 
 		// semáforos de controle da partida (jogadores)
 		sem_t semaforo_wait_partida;				// semáforo que vê que todos os jogadores estão esperando
+		sem_t semaforo_comecar_partida;				// semáforo que libera para jogadores poderem jogar
 		sem_t semaforo_saindo_partida;				// semáforo que conta quantos saíram da partida
 		sem_t semaforo_equipamentos_disponiveis;	// semáforo que diz quantos equipamentos estão disponíveis na prateleira
 
@@ -97,7 +98,7 @@
 	EXTERN int quantidade_vivos(equipe_t equipe);
 	EXTERN int quantidade_vivos_geral();
 	EXTERN int are_todos_esperando();
-	EXTERN arranjo_t filtrar_jogadores(arranjo_t *arranjo, jogador_status_t status);
+	EXTERN arranjo_t *filtrar_jogadores(arranjo_t *arranjo, jogador_status_t status);
 
 	/*============================================================================*
 	 * Funções extra exportadas (utilizadas em arquivos que incluem esse .h)      *

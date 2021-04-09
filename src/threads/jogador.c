@@ -149,7 +149,7 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 	// tenta acessar semáforo de uma equipe aleatória
 	// se não conseguir, é porque está cheia,
 	// então, acessa a outra equipe
-	if (sem_trywait(&jogadores->semaforo)) {
+	if (sem_trywait(&jogadores->semaforo) == 0) {
 		arranjo_colocar(jogadores, jogador);
 		jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
 
@@ -171,6 +171,7 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 
 	// último jogador a entrar nas equipes vai settar semáforo do gerente para prosseguir
 	if (partida->jogadores_equipes == 2 * params->jogadores_por_equipe) {
+		plog("liberei o semáforo semaforo_gerente_espera_equipes! \n");
 		sem_post(&partida->semaforo_gerente_espera_equipes);
 	}
 
@@ -225,6 +226,10 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 		if (partida->jogadores_esperando == 2 * params->jogadores_por_equipe) {
 			sem_post(&partida->semaforo_gerente_jogadores_esperando);
 		}
+
+		// espera gerente liberar para conseguir jogar
+		sem_wait(&partida->semaforo_comecar_partida);
+
 }
 
 /*============================================================================*
@@ -242,41 +247,49 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
  */
 PRIVATE void jogador_joga_partida(jogador_t * jogador)
 {
-	sem_wait(&partida->semaforo_wait_partida);
+	jogador->status = JOGADOR_JOGANDO;
 
-		jogador->status = JOGADOR_JOGANDO;
+	plog("[jogador %d] Jogando.\n", jogador->id);
 
-		plog("[jogador %d] Jogando.\n", jogador->id);
+	// enquanto partida estiver acontecendo (status partida == PARTIDA_INICIADA)
+	// e status do jogador é NÃO MORTO:
+	// faz jogador jogar (encontra inimigos e tira vida aleatória)
+	while (
+		partida->status == PARTIDA_INICIADA &&
+		jogador->status != JOGADOR_MORREU
+	) {
+		int dano_now = aleatorio(params->dano_min, params->dano_max);
 
-		// enquanto partida estiver acontecendo (status partida == PARTIDA_INICIADA)
-		// e status do jogador é NÃO MORTO:
-		// faz jogador jogar (encontra inimigos e tira vida aleatória)
-		while (
-			partida->status == PARTIDA_INICIADA &&
-			jogador->status != JOGADOR_MORREU
-		) {
-			int dano_now = aleatorio(params->dano_min, params->dano_max);
+		arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
+			(arranjo_t*) &partida->equipe_a.jogadores :
+			(arranjo_t*) &partida->equipe_b.jogadores;
 
-			arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
-				(arranjo_t*) &partida->equipe_a.jogadores :
-				(arranjo_t*) &partida->equipe_b.jogadores;
-			arranjo_t jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
-			
-			int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(&jogadores_adversarios));
-			jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios.conteudo[inimigo_ataque_index];
+		arranjo_t *jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
+		int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(jogadores_adversarios));
+		jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios->conteudo[inimigo_ataque_index];
 
-			inimigo_ataque->vida -= dano_now;
+		inimigo_ataque->vida -= dano_now;
 
-			// se jogador morreu, setta para JOGADOR_MORREU
-			// adiciona em simulador a quantidade de mortos
-			if (inimigo_ataque->vida <= 0) {
-				inimigo_ataque->status = JOGADOR_MORREU;
-				sim->jogadores_mortos += 1;
-			}
+		plog("jogador %d tirou %d de vida do jogador %d q está com vida %d \n", 
+			jogador->id,
+			dano_now,
+			inimigo_ataque->id,
+			inimigo_ataque->vida
+		);
 
-			// esperar tempo aleatório antes de atacar novamente
-			msleep(aleatorio(params->delay_min, params->delay_max));
+		// se jogador morreu, setta para JOGADOR_MORREU
+		// adiciona em simulador a quantidade de mortos
+		if (inimigo_ataque->vida <= 0) {
+			inimigo_ataque->status = JOGADOR_MORREU;
+			sim->jogadores_mortos += 1;
 		}
+
+		// arranjo_destruir(jogadores_adversarios);
+		// free(jogadores_adversarios);
+
+		// esperar tempo aleatório antes de atacar novamente
+		msleep(aleatorio(params->delay_min, params->delay_max));
+	}
 
 	plog("[jogador %d] Saindo do jogo.\n", jogador->id);
 }

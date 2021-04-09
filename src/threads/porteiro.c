@@ -69,7 +69,7 @@ PRIVATE void verifica_checklist(void)
 				jogador_cleanup(jogador_saindo);
 
 				/* Libera memória do jogador. */
-				free(jogador_saindo);
+				// free(jogador_saindo);  // ARRUMAR
 
 				/* Limpa variável global. */
 				jogador_saindo = NULL;

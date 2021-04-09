@@ -72,19 +72,22 @@ int main(int argc, char *argv[])
 	partida_cleanup();
 	prateleira_cleanup();
 
+
 	execucao_cleanup();
 
 	plog("[main] Programa terminou com sucesso!\n");
 
-	// plog("teste do arranjo");
+
+	// plog("teste do arranjo \n");
 	// jogador_t *jogador = malloc(sizeof(jogador_t));
 	// jogador->vida = 50;
 
 	// arranjo_t *arranjo = malloc(sizeof(arranjo_t));
-	// arranjo_iniciar(arranjo, 2);
+	// arranjo_iniciar(arranjo, 2, 0);
 	// arranjo_colocar(arranjo, (void *)jogador);
 	// arranjo_print_jogador(arranjo);
 	// arranjo_destruir(arranjo);
+	// free(arranjo);
 
 	return (0);
 }
