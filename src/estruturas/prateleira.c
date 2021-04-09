@@ -12,7 +12,8 @@
  *============================================================================*/
 
 /* Adicione variáveis locais. */
-arranjo_t *prateleira_global;
+
+arranjo_equipamentos_t prateleira;
 int qtdMax;
 
 /*============================================================================*
@@ -36,23 +37,16 @@ int qtdMax;
 
 PUBLIC void prateleira_setup(void)
 {
-	prateleira_global = malloc(sizeof(arranjo_t));
 	qtdMax = params->jogadores_por_equipe * 2;
 
-	arranjo_iniciar(prateleira_global, qtdMax, 0);
+	arranjo_iniciar(&prateleira.colete, qtdMax, 0);
+	arranjo_iniciar(&prateleira.capacete, qtdMax, 0);
+	arranjo_iniciar(&prateleira.arma, qtdMax, 0);
 
 	for (int i = 0; i < qtdMax; i++) {
-		int id_now = i;
-
-		equipamentos_t *equipamentos_now = malloc(sizeof(equipamentos_t));
-		equipamentos_now->colete = id_now;
-		equipamentos_now->capacete = id_now;
-		equipamentos_now->arma = id_now;
-
-		/* criar arranjos diferentes para cada equipamento (colete, capacete, arma) */
-		/* lista de inteiros */
-
-		arranjo_colocar(prateleira_global, (void *) equipamentos_now);
+		arranjo_colocar(&prateleira.colete, (void *) (intptr_t) i);
+		arranjo_colocar(&prateleira.capacete, (void *) (intptr_t) i);
+		arranjo_colocar(&prateleira.arma, (void *) (intptr_t) i);
 	}
 }
 
@@ -69,16 +63,18 @@ PUBLIC void prateleira_cleanup(void)
 	 * ATENÇÃO: A quantidade de equipamentos de cada tipo ao final da execução
 	 * do programa deve ser igual a quantidade inicial.
 	 */
-	
-	if (arranjo_tamanho(prateleira_global) == qtdMax) {
-		plog("prateleira está com todos os itens \n");
-	} else {
-		plog("prateleira não está com todos os itens ---> falta coisa \n");
-	}
-
-	arranjo_destruir(prateleira_global);
 
 	/* Complemente se precisar. */
+
+	// if (
+	// 	arranjo_tamanho(&prateleira.capacete) == qtdMax &&
+	// 	arranjo_tamanho(&prateleira.colete) == qtdMax &&
+	// 	arranjo_tamanho(&prateleira.arma) == qtdMax
+	// ) {
+	// 	plog("prateleira está com a mesma quantidade que começou! CERTO \n");
+	// } else {
+	// 	plog("prateleira está errada! ERROUUUUUUUUUUU \n");
+	// }
 }
 
 /*============================================================================*
@@ -108,17 +104,13 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	if (!arranjo_vazio(prateleira_global)) {
-		equipamentos_t *equipamento_da_prateleira = (equipamentos_t *) arranjo_retirar(prateleira_global);
+	int colete_id = (int) (intptr_t) arranjo_retirar(&prateleira.colete);
+	int capacete_id = (int) (intptr_t) arranjo_retirar(&prateleira.capacete);
+	int arma_id = (int) (intptr_t) arranjo_retirar(&prateleira.arma);
 
-		equipamentos->colete = equipamento_da_prateleira->colete;
-		equipamentos->capacete = equipamento_da_prateleira->capacete;
-		equipamentos->arma = equipamento_da_prateleira->arma;
-
-		free(equipamento_da_prateleira);
-	} else {
-		plog("a prateleira está vazia, não pega mais daqui, não \n");
-	}
+	equipamentos->colete = colete_id;
+	equipamentos->capacete = capacete_id;
+	equipamentos->arma = arma_id;
 }
 
 /*============================================================================*
@@ -140,34 +132,10 @@ PUBLIC void prateleira_libera_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	if (!arranjo_cheio(prateleira_global)) {
-		int is_wrong = 0;
+	arranjo_colocar(&prateleira.colete, (void *) (intptr_t) equipamentos->colete);
+	arranjo_colocar(&prateleira.capacete, (void *) (intptr_t) equipamentos->capacete);
+	arranjo_colocar(&prateleira.arma, (void *) (intptr_t) equipamentos->arma);
 
-		/*============================================================================*/
-		// fazer verificação de toda a prateleira (para ver se não está com o mesmo ID)
-		for (int i = 0; i < prateleira_global->size; i++) {
-			equipamentos_t *teste = (equipamentos_t *) prateleira_global->conteudo[i];
-
-			if (
-				teste->arma == equipamentos->arma ||
-				teste->capacete == equipamentos->capacete ||
-				teste->colete == equipamentos->colete
-			) {
-				plog("está com o mesmo ID, não vamos adicionar na prateleira \n");
-				is_wrong = 1;
-				break;
-			}
-		}
-
-		// se já não tiver com o mesmo ID na prateleira,
-		// adiciona novamente na prateleira e adiciona no semáforo de equipamentos disponíveis
-		if (!is_wrong) {
-			arranjo_colocar(prateleira_global, equipamentos);
-			sem_post(&partida->semaforo_equipamentos_disponiveis);
-		}
-
-	} else {
-		plog("prateleira já está cheia!! não coloque mais coisas aqui \n");
-	}
+	sem_post(&partida->semaforo_equipamentos_disponiveis);
 }
 

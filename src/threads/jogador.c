@@ -237,6 +237,8 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 		// incrementar contador de jogadores esperando
 		partida->jogadores_esperando++;
 
+		plog("partida->jogadores_esperando = %d \n", partida->jogadores_esperando);
+
 		// último jogador a esperar, vai settar semáforo do gerente para avançar e iniciar o jogo
 		if (partida->jogadores_esperando == 2 * params->jogadores_por_equipe) {
 			sem_post(&partida->semaforo_gerente_jogadores_esperando);

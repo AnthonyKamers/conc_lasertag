@@ -2,6 +2,7 @@
 #define __PRATELEIRA_H__
 
 	#include "config.h"
+	#include "arranjo.h"
 
 	/*============================================================================*
 	 * Estrutura                                                                  *
@@ -16,6 +17,12 @@
 		int capacete; /**< Identificador único do capacete. */
 		int arma;     /**< Identificador único da arma.     */
 	} equipamentos_t;
+
+	typedef struct {
+		arranjo_t colete;
+		arranjo_t capacete;
+		arranjo_t arma;
+	} arranjo_equipamentos_t;
 
 	/*============================================================================*
 	 * Funções padrão exportadas (utilizadas em arquivos que incluem esse .h)     *
