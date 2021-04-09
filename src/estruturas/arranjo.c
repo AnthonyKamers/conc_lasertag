@@ -15,12 +15,15 @@
  * @param arranjo    Ponteiro de um arranjo.
  * @param capacidade Tamanho do arranjo.
  */
-PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade)
+PUBLIC void arranjo_iniciar(arranjo_t * arranjo, int capacidade, int inicial_semaforo)
 {
+	sem_init(&(arranjo->semaforo), 0, inicial_semaforo);
+
 	// arranjo = (arranjo_t *) malloc(sizeof(arranjo_t));
 	arranjo->capacidade = capacidade;
 	arranjo->size = 0;
-	arranjo->conteudo = malloc(sizeof(arranjo_t) * capacidade);
+	arranjo->conteudo = malloc(sizeof(void *) * capacidade);
+
 }
 
 /*============================================================================*
@@ -122,7 +125,7 @@ PUBLIC void arranjo_remover(arranjo_t * arranjo, void * elemento) // remove
 		// loop pelo arranjo
 		for (int i = 0; i < arranjo->capacidade; i++) {
 			if (arranjo->conteudo[i] == elemento) {
-				// fazer alguma coisa aqui
+				arranjo_pop(arranjo, i);
 				break;
 			}
 		}

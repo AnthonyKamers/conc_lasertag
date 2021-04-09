@@ -19,7 +19,6 @@
  * @brief Definição de variáveis globais.
  */
 PUBLIC partida_t * partida;
-PUBLIC int tempo_partida;
 
 /*============================================================================*
  * partida_setup()                                                            *
@@ -42,9 +41,10 @@ PUBLIC void partida_setup(void)
 	 * Setup Atributos da partida.
 	 */
 	partida->status = PARTIDA_NAO_PREPARADA;
+	partida->tempo_partida = 0;
 
-	// settar tempo_partida
-	tempo_partida = 0;
+	sem_init(&partida->semaforo_wait_partida, 0, 2 * params->jogadores_por_equipe);
+	sem_init(&partida->semaforo_jogando, 0, 2 * params->jogadores_por_equipe);
 
 	/**
 	 * Complemente se precisar.
@@ -65,13 +65,15 @@ PUBLIC void partida_cleanup(void)
 	 */
 	equipe_cleanup(&partida->equipe_a);
 	equipe_cleanup(&partida->equipe_b);
+	free(partida);
+
+	sem_destroy(&partida->semaforo_wait_partida);
 
 	/**
 	 * Complemente se precisar.
 	 */
 
 	/* Libera partida. */
-	free(partida);
 }
 
 /*============================================================================*
@@ -172,6 +174,16 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 		// resultado indefinido
 		partida_print_resultado(0, 0, PARTIDA_RESULTADO_INDEFINIDO);
 	}
+}
+
+PUBLIC arranjo_t filtrar_jogadores(arranjo_t *jogadores, jogador_status_t status) {
+	arranjo_t jogadores_filtrados;
+	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
+		jogador_t *jogador_now = (jogador_t *) jogadores->conteudo[i];
+		if (jogador_now->status == status) arranjo_colocar(&jogadores_filtrados, jogador_now);
+	}
+
+	return jogadores_filtrados;
 }
 
 PUBLIC int quantidade_vivos_geral() {

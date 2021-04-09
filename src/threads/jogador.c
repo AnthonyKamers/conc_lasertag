@@ -140,37 +140,26 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 	plog("[jogador %d] Escolhendo a equipe.\n", jogador->id);
 
 	/* Escolha uma equipe. */
+	int equipe = aleatorio(0, 2);
 
-	// trava para que cada jogador entre de cada vez
-	// para não dar "overflow" no número de jogadores por equipe
-	while (jogador->equipe == EQUIPE_INVALIDA) {
-		if (
-			partida->status == PARTIDA_NAO_PREPARADA
-		) {
-			/*
-				aumentar concorrência
-				-> colocar proteção arranjo (exemlpo)
-			*/
-			pthread_mutex_lock(&sim->lock);
-				int equipe = -1;
+	arranjo_t *jogadores = equipe == 0 ?
+	(arranjo_t *) &partida->equipe_a.jogadores :
+	(arranjo_t *) &partida->equipe_b.jogadores;
 
-				while (true) {
-					int equipe_now = equipe != -1 ? equipe : aleatorio(0, 2);
+	if (sem_trywait(&jogadores->semaforo)) {
+		arranjo_colocar(jogadores, jogador);
+		jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
+	} else {
+		// se não conseguiu, tenta entrar na outra equipe
+		equipe = equipe == 0 ? 1 : 0;
 
-					arranjo_t *jogadores = equipe_now == 0 ? 
-						(arranjo_t *) &partida->equipe_a.jogadores :
-						(arranjo_t *) &partida->equipe_b.jogadores;
+		jogadores = equipe == 0 ? 
+		(arranjo_t *) &partida->equipe_a.jogadores :
+		(arranjo_t *) &partida->equipe_b.jogadores;
 
-					if (arranjo_tamanho(jogadores) < params->jogadores_por_equipe) {
-						arranjo_colocar(jogadores, jogador);  // coloca no arranjo de jogadores da equipe determinada
-						jogador->equipe = equipe_now == 0 ? EQUIPE_A : EQUIPE_B;  // setta equipe do jogador
-						break;  // sai do while
-					} else {
-						equipe = equipe_now == 0 ? 1 : 0;  // se a equipe estiver cheia, setta flag para outra equipe
-					}
-				}
-			pthread_mutex_unlock(&sim->lock);
-		}
+		sem_wait(&jogadores->semaforo);
+			arranjo_colocar(jogadores, jogador);
+			jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
 	}
 
 	plog("[jogador %d] Escolheu a equipe %d.\n", jogador->id, jogador->equipe);
@@ -214,13 +203,16 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 
 	plog("[jogador %d] Esperando partida começar.\n", jogador->id);
 
+	// sem_wait(&partida->semaforo_wait_partida);  // wait no semáforo da partida
+
 	/* Espere as duas equipes se formarem. */
 	// enquanto tiver pessoas que não estão esperando
-	while (!are_todos_esperando()) {}
 
-	if (are_todos_esperando()) {
-		plog("[jogador %d] Indo jogar.\n", jogador->id);
-	}
+	// while (!are_todos_esperando()) {}
+
+	// if (are_todos_esperando()) {
+	// 	plog("[jogador %d] Indo jogar.\n", jogador->id);
+	// }
 }
 
 /*============================================================================*
@@ -242,7 +234,32 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 
 	plog("[jogador %d] Jogando.\n", jogador->id);
 
-	/* Implemente a lógica do jogo aqui. */
+	// sem_wait(&partida->semaforo_jogando);  // incrementa contador do semáforo de semaforo_jogando
+
+	// /* Implemente a lógica do jogo aqui. */
+	// while (partida->status == PARTIDA_INICIADA) {
+	// 	int dano_now = aleatorio(params->dano_min, params->dano_max);
+
+	// 	arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
+	// 		(arranjo_t*) &partida->equipe_a.jogadores :
+	// 		(arranjo_t*) &partida->equipe_b.jogadores;
+	// 	arranjo_t jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
+		
+	// 	int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(&jogadores_adversarios));
+	// 	jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios.conteudo[inimigo_ataque_index];
+
+	// 	inimigo_ataque->vida -= dano_now;
+
+	// 	// se jogador morreu, setta para JOGADOR_MORREU
+	// 	if (inimigo_ataque->vida <= 0) {
+	// 		inimigo_ataque->status = JOGADOR_MORREU;
+	// 	}
+
+	// 	// esperar tempo aleatório antes de atacar novamente
+	// 	msleep(aleatorio(params->delay_min, params->delay_max));
+	// }
+	
+	// sem_post(&partida->semaforo_jogando);  // decrementa contador do semáforo de semaforo_jogando
 
 	plog("[jogador %d] Saindo do jogo.\n", jogador->id);
 }
@@ -259,7 +276,7 @@ PRIVATE void jogador_espera_partida_terminar(jogador_t * jogador)
 {
 	plog("[jogador %d] Esperando a partida terminar.\n", jogador->id);
 
-	/* Espere a partida terminar. */
+	// sem_wait(&partida->semaforo_jogando);
 }
 
 /*============================================================================*
@@ -278,6 +295,12 @@ PRIVATE void jogador_sai_equipe(jogador_t * jogador)
 	plog("[jogador %d] Libera vaga.\n", jogador->id);
 
 	/* Saia da equipe. */
+	// arranjo_t *arranjoJogadoresJogador = jogador->equipe == EQUIPE_A ? 
+	// 	(arranjo_t *) &partida->equipe_a.jogadores :
+	// 	(arranjo_t *) &partida->equipe_b.jogadores;
+
+	// arranjo_remover(arranjoJogadoresJogador, (void *) jogador);
+	// sem_post(&arranjoJogadoresJogador->semaforo);
 }
 
 /*============================================================================*

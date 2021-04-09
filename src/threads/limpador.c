@@ -85,7 +85,7 @@ PUBLIC void * limpador_fn(void * arg)
 	// ou seja, enquanto tempo_partida < partida_tempo_max e
 	// houver jogadores vivos na partida
 	while (
-		tempo_partida > params->partida_tempo_max &&
+		partida->tempo_partida > params->partida_tempo_max &&
 		quantidade_vivos_geral() > 0
 	) {}
 

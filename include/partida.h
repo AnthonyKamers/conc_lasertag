@@ -3,6 +3,7 @@
 
 	#include "config.h"
 	#include "equipe.h"
+	#include "jogador.h"
 
 	/*============================================================================*
 	 * Estrutura                                                                  *
@@ -46,6 +47,10 @@
 		 */
 		partida_status_t status;   /**< Estado da partida. */
 
+		sem_t semaforo_wait_partida;	// semáforo que vê que todos os jogadores estão esperando
+		sem_t semaforo_jogando;			// semáforo que conta quantidade de pessoas jogando
+		int tempo_partida;
+
 		/**
 		 * @brief Complemente se precisar.
 		 */
@@ -78,6 +83,7 @@
 	EXTERN int quantidade_vivos(equipe_t equipe);
 	EXTERN int quantidade_vivos_geral();
 	EXTERN int are_todos_esperando();
+	EXTERN arranjo_t filtrar_jogadores(arranjo_t *arranjo, jogador_status_t status);
 
 	/*============================================================================*
 	 * Funções extra exportadas (utilizadas em arquivos que incluem esse .h)      *

@@ -57,52 +57,82 @@ PUBLIC void * gerente_fn(void * arg)
 {
 	plog("[gerente] Iniciou.\n");
 
-	// enquanto o tempo da partida não ultrapassar o tempo máximo (para cada partida)
-	while (tempo_partida <= params->partida_tempo_max) {
-		// tick
-		msleep(params->delay_gerente);
-		tempo_partida += params->delay_gerente;
+	// sem_wait(&partida->semaforo_wait_partida);  // quando todos estiverem jogando, vai conseguir dar wait
+	// 	partida->tempo_partida = 0;
+	// 	partida->status = PARTIDA_INICIADA;
+	// 	while (1) {
+	// 		msleep(params->delay_gerente);
+	// 		partida->tempo_partida += params->delay_gerente;
 
-		equipe_t equipeA = partida->equipe_a;
-		equipe_t equipeB = partida->equipe_b;
+	// 		gerente_coordena_partida();
 
-		// se as equipes estiverem prontas -> inicia a partida
-		if (
-			(arranjo_tamanho(&equipeA.jogadores) == equipeA.capacidade) &&
-			(arranjo_tamanho(&equipeB.jogadores) == equipeB.capacidade) &&
-			partida->status == PARTIDA_NAO_PREPARADA
-		) {
-			partida->status = PARTIDA_PREPARADA;
-		}
+	// 		// testa se acabou a partida
+	// 		equipe_t equipeA = partida->equipe_a;
+	// 		equipe_t equipeB = partida->equipe_b;
 
-		// settar de PREPARADA para INICIADA [se todos jogadores estiverem esperando]
-		// printf("are_todos_esperando() from gerente = %d \n", are_todos_esperando());
-		if (
-			are_todos_esperando() &&
-			partida->status == PARTIDA_PREPARADA
-		) {
-			plog("gerente vai iniciar partida \n");
-			partida->status = PARTIDA_INICIADA;
-		}
+	// 		if (
+	// 			partida->tempo_partida < params->partida_tempo_max &&
+	// 			quantidade_vivos(equipeA) > 0 &&
+	// 			quantidade_vivos(equipeB) > 0
+	// 		) {
+	// 			// acaba com a partida
+	// 			partida->status = PARTIDA_FINALIZADA;
+	// 			partida_nomeia_vencedores(partida->tempo_partida);
+	// 			partida->tempo_partida = 0;
 
-		// se uma equipe está toda morta ou se o tempo acabou
-		//	-> setta partida para FINALIZADA
-		//	-> chama partida_nomeia_vencedores()
-		if (
-			partida->status == PARTIDA_INICIADA &&
-			(
-				(quantidade_vivos(equipeA) == 0 && arranjo_tamanho(&equipeA.jogadores) > 0) ||
-				(quantidade_vivos(equipeB) == 0 && arranjo_tamanho(&equipeB.jogadores) > 0) ||
-				tempo_partida >= params->partida_tempo_max
-			)
-		) {
-			partida->status = PARTIDA_FINALIZADA;
-			partida_nomeia_vencedores(tempo_partida);
-		}
+	// 			break;
+	// 		}
+	// 	}
 
-		// chama coordena_partida (para curar jogadores)
+	// // enquanto o tempo da partida não ultrapassar o tempo máximo (para cada partida)
+	// while (tempo_partida <= params->partida_tempo_max) {
+	// 	// tick
+	// 	msleep(params->delay_gerente);
+	// 	tempo_partida += params->delay_gerente;
+
+	// 	equipe_t equipeA = partida->equipe_a;
+	// 	equipe_t equipeB = partida->equipe_b;
+
+	// 	// se as equipes estiverem prontas -> inicia a partida
+	// 	if (
+	// 		(arranjo_tamanho(&equipeA.jogadores) == equipeA.capacidade) &&
+	// 		(arranjo_tamanho(&equipeB.jogadores) == equipeB.capacidade) &&
+	// 		partida->status == PARTIDA_NAO_PREPARADA
+	// 	) {
+	// 		partida->status = PARTIDA_PREPARADA;
+	// 	}
+
+	// 	// settar de PREPARADA para INICIADA [se todos jogadores estiverem esperando]
+	// 	// printf("are_todos_esperando() from gerente = %d \n", are_todos_esperando());
+	// 	if (
+	// 		are_todos_esperando() &&
+	// 		partida->status == PARTIDA_PREPARADA
+	// 	) {
+	// 		plog("gerente vai iniciar partida \n");
+	// 		partida->status = PARTIDA_INICIADA;
+	// 	}
+
+	// 	// se uma equipe está toda morta ou se o tempo acabou
+	// 	//	-> setta partida para FINALIZADA
+	// 	//	-> chama partida_nomeia_vencedores()
+	// 	if (
+	// 		partida->status == PARTIDA_INICIADA &&
+	// 		(
+	// 			(quantidade_vivos(equipeA) == 0 && arranjo_tamanho(&equipeA.jogadores) > 0) ||
+	// 			(quantidade_vivos(equipeB) == 0 && arranjo_tamanho(&equipeB.jogadores) > 0) ||
+	// 			tempo_partida >= params->partida_tempo_max
+	// 		)
+	// 	) {
+	// 		partida->status = PARTIDA_FINALIZADA;
+	// 		partida_nomeia_vencedores(tempo_partida);
+	// 	}
+
+	// 	// chama coordena_partida (para curar jogadores)
+	// 	gerente_coordena_partida();
+	// }
+
+	if (false)
 		gerente_coordena_partida();
-	}
 
 	return (NULL);
 }
@@ -150,23 +180,19 @@ PRIVATE void gerente_coordena_partida(void)
 {
 	// plog("[gerente] Coordenando partida.\n");
 
-	equipe_t equipeA = partida->equipe_a;
-	equipe_t equipeB = partida->equipe_b;
+	// equipe_t equipeA = partida->equipe_a;
+	// equipe_t equipeB = partida->equipe_b;
 
-	// enquanto houver tempo de partida e partida estiver rodando
-	//	-> cura periodicamente os jogadores
-	while (
-		tempo_partida < params->partida_tempo_max &&
-		partida->status == PARTIDA_INICIADA &&
-		quantidade_vivos(equipeA) > 0 &&
-		quantidade_vivos(equipeB) > 0
-	) {
-		// espera delay_gerente e cura jogadores após isso
-		msleep(params->delay_gerente);
-		gerente_cura_jogadores();
-	}
-
-	// if (false)
+	// // enquanto houver tempo de partida e partida estiver rodando
+	// //	-> cura periodicamente os jogadores
+	// if (
+	// 	partida->tempo_partida < params->partida_tempo_max &&
+	// 	quantidade_vivos(equipeA) > 0 &&
+	// 	quantidade_vivos(equipeB) > 0
+	// ) {
 	// 	gerente_cura_jogadores();
+	// }
+	if (false)
+		gerente_cura_jogadores();
 }
 

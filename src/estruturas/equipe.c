@@ -23,7 +23,7 @@ PUBLIC void equipe_setup(equipe_t * equipe, equipe_id_t id, int njogadores)
 	equipe->id         = id;
 	equipe->capacidade = njogadores;
 
-	arranjo_iniciar(&equipe->jogadores, njogadores);
+	arranjo_iniciar(&equipe->jogadores, njogadores, njogadores);
 
 	/* Complemente se precisar. */
 }

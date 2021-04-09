@@ -29,7 +29,7 @@
 	 * Funções padrão exportadas (utilizadas em arquivos que incluem esse .h)     *
 	 *============================================================================*/
 
-	EXTERN void arranjo_iniciar(arranjo_t * arranjo, int capacidade);
+	EXTERN void arranjo_iniciar(arranjo_t * arranjo, int capacidade, int inicial_semaforo);
 	EXTERN void arranjo_destruir(arranjo_t * arranjo);
 	EXTERN void arranjo_colocar(arranjo_t * arranjo, void * valor);
 	EXTERN void * arranjo_retirar(arranjo_t * arranjo);

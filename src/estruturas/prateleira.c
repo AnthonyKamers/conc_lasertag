@@ -38,7 +38,7 @@ PUBLIC void prateleira_setup(void)
 	prateleira_global = malloc(sizeof(arranjo_t));
 	qtdMax = params->jogadores_por_equipe * 2;
 
-	arranjo_iniciar(prateleira_global, qtdMax);
+	arranjo_iniciar(prateleira_global, qtdMax, 0);
 
 	for (int i = 0; i < qtdMax; i++) {
 		int id_now = i;
