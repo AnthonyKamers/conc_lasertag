@@ -62,6 +62,11 @@ PUBLIC void * gerente_fn(void * arg)
 
 	// enquanto a quantidade máxima de partidas não foi atingida
 	while (partida->partida_now <= params->partidas_max) {
+		// começa liberando jogadores para poderem escolher equipes
+		for (int i = 0; i < 2 * params->jogadores_por_equipe; i++) {
+			sem_post(&partida->semaforo_deixa_escolher_equipe);
+		}
+
 		// esperar todos os jogadores entrarem em equipes
 		sem_wait(&partida->semaforo_gerente_espera_equipes);
 
@@ -73,6 +78,7 @@ PUBLIC void * gerente_fn(void * arg)
 			// chama while de gerente_coordena_partida() para fazer handle de fim de jogo e 
 			// cura de jogadores no meio da partida
 			sem_wait(&partida->semaforo_gerente_jogadores_esperando);
+
 				// dar (jogadores_por_equipe * 2) posts em partida->semaforo_wait_partida
 				// para permitir jogadores entrarem na partida e jogar
 				plog("gerente vai fazer 2 * params->jogadores_por_equipe posts em semaforo_wait_partida \n");
@@ -92,6 +98,7 @@ PUBLIC void * gerente_fn(void * arg)
 				sem_wait(&partida->semaforo_gerente_comeca_partida);
 
 				// resettar todas as configurações da partida
+				plog("gerente: vou resetar os dados da partida \n");
 				gerente_reset_partida();
 	}
 
@@ -150,11 +157,11 @@ PUBLIC int gerente_partida_acabou(void) {
 		quantidade_vivos(equipeA) <= 0 ||
 		quantidade_vivos(equipeB) <= 0
 	) {
-		// plog("gerente vai terminar partida | tempo_partida = %d | vivosA = %d | vivosB = %d \n",
-		// 	partida->tempo_partida,
-		// 	quantidade_vivos(equipeA),
-		// 	quantidade_vivos(equipeB)
-		// );
+		plog("GERENTE VAI TERMINAR PARTIDA | tempo_partida = %d | vivosA = %d | vivosB = %d \n",
+			partida->tempo_partida,
+			quantidade_vivos(equipeA),
+			quantidade_vivos(equipeB)
+		);
 		
 		// acaba com a partida (jogadores vão parar de jogar aqui)
 		partida->status = PARTIDA_FINALIZADA;
@@ -164,13 +171,11 @@ PUBLIC int gerente_partida_acabou(void) {
 
 		// dar 2 * jogadores_por_equipe post em partida->semaforo_saindo_partida
 		// para liberar jogadores para conseguir sair da partida
+
+		plog("GERENTE VAI DAR POST EM semaforo_saindo_partida \n");
 		for (int i = 0; i < 2 * params->jogadores_por_equipe; i++) {
 			sem_post(&partida->semaforo_saindo_partida);
 		}
-
-		// libera semáforo para gerente poder continuar e
-		// criar nova partida
-		sem_post(&partida->semaforo_gerente_comeca_partida);
 
 		return 0;
 	}
@@ -216,6 +221,7 @@ PUBLIC void gerente_reset_partida(void) {
 	partida->tempo_partida = 0;
 	partida->jogadores_esperando = 0;
 	partida->jogadores_equipes = 0;
+	partida->jogadores_ja_sairam = 0;
 	partida->partida_now += 1;
 
 	// abre espaços para novos jogadores conseguirem entrar na partida

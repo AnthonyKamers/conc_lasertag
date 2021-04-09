@@ -83,10 +83,7 @@ PUBLIC void * limpador_fn(void * arg)
 	// deixar thread ativa enquanto houver tempo em tempo_partida
 	// ou seja, enquanto tempo_partida < partida_tempo_max e
 	// houver jogadores vivos na partida
-	while (
-		partida->tempo_partida > params->partida_tempo_max &&
-		quantidade_vivos_geral() > 0
-	) {}
+	while (partida->partida_now <= params->partidas_max) {}
 
 	return (NULL);
 }

@@ -61,7 +61,7 @@ PUBLIC void arranjo_destruir(arranjo_t * arranjo)
 PUBLIC void arranjo_colocar(arranjo_t * arranjo, void * elemento) // push_back
 {
 	if (arranjo_cheio(arranjo)) {
-		printf("tentou adicionar no arranjo, mas está cheio");
+		printf("tentou adicionar no arranjo, mas está cheio \n");
 	} else {
 		arranjo->conteudo[arranjo->size] = elemento;
 		arranjo->size++;

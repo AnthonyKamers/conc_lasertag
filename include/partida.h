@@ -56,11 +56,13 @@
 		sem_t semaforo_comecar_partida;				// semáforo que libera para jogadores poderem jogar
 		sem_t semaforo_saindo_partida;				// semáforo que conta quantos saíram da partida
 		sem_t semaforo_equipamentos_disponiveis;	// semáforo que diz quantos equipamentos estão disponíveis na prateleira
+		sem_t semaforo_deixa_escolher_equipe;		// semáforo que diz se pode escolher equipe ou não
 
 		int partida_now;				// número da partida que está jogando agora
 		int tempo_partida;				// tempo da partida que está jogando agora
 		int jogadores_equipes;			// contador de jogadores que entraram para equipes
 		int jogadores_esperando;		// contador de jogadores esperando
+		int jogadores_ja_sairam;		// contador de jogadores que já saíram da partida
 
 		// semáforos gerente
 		sem_t semaforo_gerente_espera_equipes;			// semáforo para ver quando o gerente deve avançar

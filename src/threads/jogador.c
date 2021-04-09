@@ -135,47 +135,61 @@ PUBLIC void * jogador_fn(void * arg)
  */
 PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 {
-	jogador->status = JOGADOR_ESCOLHENDO_EQUIPE;
+	sem_wait(&partida->semaforo_deixa_escolher_equipe);  // semáforo para ver se pode começar a escolher a equipe
 
-	plog("[jogador %d] Escolhendo a equipe.\n", jogador->id);
+		jogador->status = JOGADOR_ESCOLHENDO_EQUIPE;
 
-	/* Escolha uma equipe. */
-	int equipe = aleatorio(0, 2);
+		plog("[jogador %d] Escolhendo a equipe.\n", jogador->id);
 
-	arranjo_t *jogadores = equipe == 0 ?
-	(arranjo_t *) &partida->equipe_a.jogadores :
-	(arranjo_t *) &partida->equipe_b.jogadores;
+		/* Escolha uma equipe. */
+		int equipe = aleatorio(0, 2);
 
-	// tenta acessar semáforo de uma equipe aleatória
-	// se não conseguir, é porque está cheia,
-	// então, acessa a outra equipe
-	if (sem_trywait(&jogadores->semaforo) == 0) {
-		arranjo_colocar(jogadores, jogador);
-		jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
-
-		partida->jogadores_equipes++;
-	} else {
-		// se não conseguiu, tenta entrar na outra equipe
-		equipe = equipe == 0 ? 1 : 0;
-
-		jogadores = equipe == 0 ? 
+		arranjo_t *jogadores = equipe == 0 ?
 		(arranjo_t *) &partida->equipe_a.jogadores :
 		(arranjo_t *) &partida->equipe_b.jogadores;
 
-		sem_wait(&jogadores->semaforo);
+		// tenta acessar semáforo de uma equipe aleatória
+		// se não conseguir, é porque está cheia,
+		// então, acessa a outra equipe
+		if (sem_trywait(&jogadores->semaforo) == 0) {
+
+			plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
 			arranjo_colocar(jogadores, jogador);
 			jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
 
 			partida->jogadores_equipes++;
-	}
+		} else {
+			// se não conseguiu, tenta entrar na outra equipe
+			equipe = equipe == 0 ? 1 : 0;
 
-	// último jogador a entrar nas equipes vai settar semáforo do gerente para prosseguir
-	if (partida->jogadores_equipes == 2 * params->jogadores_por_equipe) {
-		plog("liberei o semáforo semaforo_gerente_espera_equipes! \n");
-		sem_post(&partida->semaforo_gerente_espera_equipes);
-	}
+			jogadores = equipe == 0 ? 
+			(arranjo_t *) &partida->equipe_a.jogadores :
+			(arranjo_t *) &partida->equipe_b.jogadores;
 
-	plog("[jogador %d] Escolheu a equipe %d.\n", jogador->id, jogador->equipe);
+			plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
+			sem_wait(&jogadores->semaforo);
+				arranjo_colocar(jogadores, jogador);
+				jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
+
+				partida->jogadores_equipes++;
+		}
+
+		// plog("partida->jogadores_equipes = %d \n", partida->jogadores_equipes);
+		// int semEquipe1, semEquipe2;
+		// sem_getvalue(&partida->equipe_a.jogadores.semaforo, &semEquipe1);
+		// sem_getvalue(&partida->equipe_b.jogadores.semaforo, &semEquipe2);
+
+		// plog("semaforo equipe A = %d \n", semEquipe1);
+		// plog("semaforo equipe B = %d \n", semEquipe2);
+
+
+		// último jogador a entrar nas equipes vai settar semáforo do gerente para prosseguir
+		if (partida->jogadores_equipes == 2 * params->jogadores_por_equipe) {
+			plog("liberei o semáforo semaforo_gerente_espera_equipes! \n");
+			sem_post(&partida->semaforo_gerente_espera_equipes);
+		}
+
+		plog("[jogador %d] Escolheu a equipe %d.\n", jogador->id, jogador->equipe);
 }
 
 /*============================================================================*
@@ -192,16 +206,17 @@ PRIVATE void jogador_aloca_equipamento(jogador_t * jogador)
 {
 	jogador->status = JOGADOR_PEGANDO_EQUIPAMENTO;
 
-	// prateleira_pega_equipamentos é thread-safe
+	// tenta pegar um item da prateleira (se não conseguir, é porque não tem na prateleira)
 	// só pega equipamento, se tiver disponível
-	prateleira_pega_equipamentos(&jogador->equipamentos);
+	sem_wait(&partida->semaforo_equipamentos_disponiveis);
+		prateleira_pega_equipamentos(&jogador->equipamentos);
 
-	plog("[jogador %d] Alocou os equipamentos [%d, %d, %d].\n",
-		jogador->id,
-		jogador->equipamentos.colete,
-		jogador->equipamentos.capacete,
-		jogador->equipamentos.arma
-	);
+		plog("[jogador %d] Alocou os equipamentos [%d, %d, %d].\n",
+			jogador->id,
+			jogador->equipamentos.colete,
+			jogador->equipamentos.capacete,
+			jogador->equipamentos.arma
+		);
 }
 
 /*============================================================================*
@@ -255,33 +270,43 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 	// e status do jogador é NÃO MORTO:
 	// faz jogador jogar (encontra inimigos e tira vida aleatória)
 	while (
-		partida->status == PARTIDA_INICIADA &&
+		partida->status != PARTIDA_FINALIZADA &&
 		jogador->status != JOGADOR_MORREU
 	) {
 		int dano_now = aleatorio(params->dano_min, params->dano_max);
 
 		arranjo_t *equipe_adversaria = jogador->equipe == EQUIPE_A ?
-			(arranjo_t*) &partida->equipe_a.jogadores :
-			(arranjo_t*) &partida->equipe_b.jogadores;
+			(arranjo_t*) &partida->equipe_b.jogadores :
+			(arranjo_t*) &partida->equipe_a.jogadores;
 
 		arranjo_t *jogadores_adversarios = filtrar_jogadores(equipe_adversaria, JOGADOR_JOGANDO);
-		int inimigo_ataque_index = aleatorio(0, arranjo_tamanho(jogadores_adversarios));
-		jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios->conteudo[inimigo_ataque_index];
+		int tamanhoJogadores = arranjo_tamanho(jogadores_adversarios);
 
-		inimigo_ataque->vida -= dano_now;
+		if (tamanhoJogadores != 0) {
+			int inimigo_ataque_index = aleatorio(0, tamanhoJogadores);
+			jogador_t *inimigo_ataque = (jogador_t*) jogadores_adversarios->conteudo[inimigo_ataque_index];
 
-		plog("jogador %d tirou %d de vida do jogador %d q está com vida %d \n", 
-			jogador->id,
-			dano_now,
-			inimigo_ataque->id,
-			inimigo_ataque->vida
-		);
+			inimigo_ataque->vida -= dano_now;
 
-		// se jogador morreu, setta para JOGADOR_MORREU
-		// adiciona em simulador a quantidade de mortos
-		if (inimigo_ataque->vida <= 0) {
-			inimigo_ataque->status = JOGADOR_MORREU;
-			sim->jogadores_mortos += 1;
+			// plog("jogador %d ainda está jogando | status partida = %d | status jogador = %d \n",
+			// 	jogador->id,
+			// 	partida->status,
+			// 	jogador->status
+			// );
+
+			plog("------------------->> jogador %d tirou %d de vida do jogador %d q está com vida %d \n", 
+				jogador->id,
+				dano_now,
+				inimigo_ataque->id,
+				inimigo_ataque->vida
+			);
+
+			// se jogador morreu, setta para JOGADOR_MORREU
+			// adiciona em simulador a quantidade de mortos
+			if (inimigo_ataque->vida <= 0) {
+				inimigo_ataque->status = JOGADOR_MORREU;
+				sim->jogadores_mortos += 1;
+			}
 		}
 
 		// arranjo_destruir(jogadores_adversarios);
@@ -290,6 +315,11 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 		// esperar tempo aleatório antes de atacar novamente
 		msleep(aleatorio(params->delay_min, params->delay_max));
 	}
+
+	plog("jogador saiu do while -> status jogador = %d | status partida = %d \n",
+		jogador->status,
+		partida->status
+	);
 
 	plog("[jogador %d] Saindo do jogo.\n", jogador->id);
 }
@@ -331,6 +361,15 @@ PRIVATE void jogador_sai_equipe(jogador_t * jogador)
 
 	arranjo_remover(arranjoJogadoresJogador, (void *) jogador);  // remove da equipe
 	sem_post(&arranjoJogadoresJogador->semaforo);  // abre espaço para conseguir entrar na equipe
+
+	partida->jogadores_ja_sairam++;
+
+	if (partida->jogadores_ja_sairam >= 2 * params->jogadores_por_equipe) {
+		// libera semáforo para gerente poder continuar e
+		// criar nova partida
+		plog("último jogador a sair vai liberar para gerente começar nova partida \n");
+		sem_post(&partida->semaforo_gerente_comeca_partida);
+	}
 }
 
 /*============================================================================*

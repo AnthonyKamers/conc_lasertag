@@ -108,20 +108,17 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	// tenta pegar um item da prateleira (se não conseguir, é porque não tem na prateleira)
-	sem_wait(&partida->semaforo_equipamentos_disponiveis);
+	if (!arranjo_vazio(prateleira_global)) {
+		equipamentos_t *equipamento_da_prateleira = (equipamentos_t *) arranjo_retirar(prateleira_global);
 
-		if (!arranjo_vazio(prateleira_global)) {
-			equipamentos_t *equipamento_da_prateleira = (equipamentos_t *) arranjo_retirar(prateleira_global);
+		equipamentos->colete = equipamento_da_prateleira->colete;
+		equipamentos->capacete = equipamento_da_prateleira->capacete;
+		equipamentos->arma = equipamento_da_prateleira->arma;
 
-			equipamentos->colete = equipamento_da_prateleira->colete;
-			equipamentos->capacete = equipamento_da_prateleira->capacete;
-			equipamentos->arma = equipamento_da_prateleira->arma;
-
-			free(equipamento_da_prateleira);
-		} else {
-			plog("a prateleira está vazia, não pega mais daqui, não \n");
-		}
+		free(equipamento_da_prateleira);
+	} else {
+		plog("a prateleira está vazia, não pega mais daqui, não \n");
+	}
 }
 
 /*============================================================================*

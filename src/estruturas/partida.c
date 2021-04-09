@@ -45,10 +45,12 @@ PUBLIC void partida_setup(void)
 	partida->tempo_partida = 0;
 	partida->jogadores_equipes = 0;
 	partida->jogadores_esperando = 0;
+	partida->jogadores_ja_sairam = 0;
 
-	// semáforos jogadores/partida
+	// semáforos jogadores/partida/equipamentos
 	sem_init(&partida->semaforo_wait_partida, 0, 2 * params->jogadores_por_equipe);
 	sem_init(&partida->semaforo_equipamentos_disponiveis, 0, 2 * params->jogadores_por_equipe);
+	sem_init(&partida->semaforo_deixa_escolher_equipe, 0, 0);
 	sem_init(&partida->semaforo_comecar_partida, 0, 0);
 	sem_init(&partida->semaforo_saindo_partida, 0, 0);
 
@@ -85,6 +87,8 @@ PUBLIC void partida_cleanup(void)
 	sem_destroy(&partida->semaforo_wait_partida);
 	sem_destroy(&partida->semaforo_saindo_partida);
 	sem_destroy(&partida->semaforo_comecar_partida);
+	sem_destroy(&partida->semaforo_deixa_escolher_equipe);
+	sem_destroy(&partida->semaforo_equipamentos_disponiveis);
 
 	// semáforos gerente
 	sem_destroy(&partida->semaforo_gerente_espera_equipes);
@@ -200,6 +204,8 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 	int vivosA = quantidade_vivos(partida->equipe_a);
 	int vivosB = quantidade_vivos(partida->equipe_b);
 
+	plog("tempo_restante em partida_nomeia_vencedores = %d \n", tempo_restante);
+
 	if (tempo_restante <= 0) {
 		// tempo estourou
 		if (vivosA > vivosB) {
@@ -223,6 +229,9 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 				// se a soma da vida da equipe B é maior do que a da equipe A -> equipe B ganhou
 				partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EQUIPE_B_VENCEU);
 
+			} else {
+				// deu empate
+				partida_print_resultado(tempo_restante, vivosB, PARTIDA_RESULTADO_EMPATOU);
 			}
 		} else {
 			// resultado indefinido
