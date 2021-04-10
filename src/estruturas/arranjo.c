@@ -100,7 +100,7 @@ PUBLIC void * arranjo_retirar(arranjo_t * arranjo) // pop_back
 PUBLIC void * arranjo_pop(arranjo_t * arranjo, int index) { // pop
 	void * elemento = NULL;
 
-	if (index > 0 && index < arranjo->size) {
+	if (index >= 0 && index < arranjo->size) {
 		elemento = arranjo->conteudo[index];
 		arranjo->size--;
 

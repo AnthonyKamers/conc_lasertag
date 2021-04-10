@@ -69,7 +69,7 @@ PRIVATE void verifica_checklist(void)
 				jogador_cleanup(jogador_saindo);
 
 				/* Libera memória do jogador. */
-				// free(jogador_saindo);  // ARRUMAR
+				free(jogador_saindo);  // ARRUMAR
 
 				/* Limpa variável global. */
 				jogador_saindo = NULL;
@@ -165,4 +165,5 @@ PUBLIC void porteiro_setup(void)
  */
 PUBLIC void porteiro_cleanup(void)
 {
+	pthread_mutex_destroy(&porta);  // erro de quem fez o arquivo!!!!!!!!!!!!!
 }

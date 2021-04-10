@@ -66,15 +66,15 @@ PUBLIC void prateleira_cleanup(void)
 
 	/* Complemente se precisar. */
 
-	// if (
-	// 	arranjo_tamanho(&prateleira.capacete) == qtdMax &&
-	// 	arranjo_tamanho(&prateleira.colete) == qtdMax &&
-	// 	arranjo_tamanho(&prateleira.arma) == qtdMax
-	// ) {
-	// 	plog("prateleira está com a mesma quantidade que começou! CERTO \n");
-	// } else {
-	// 	plog("prateleira está errada! ERROUUUUUUUUUUU \n");
-	// }
+	if (
+		arranjo_tamanho(&prateleira.capacete) == qtdMax &&
+		arranjo_tamanho(&prateleira.colete) == qtdMax &&
+		arranjo_tamanho(&prateleira.arma) == qtdMax
+	) {
+		plog("prateleira está com a mesma quantidade que começou! CERTO \n");
+	} else {
+		plog("prateleira está errada! ERROUUUUUUUUUUU \n");
+	}
 }
 
 /*============================================================================*
@@ -104,9 +104,13 @@ PUBLIC void prateleira_pega_equipamentos(equipamentos_t * equipamentos)
 {
 	assert(equipamentos);
 
-	int colete_id = (int) (intptr_t) arranjo_retirar(&prateleira.colete);
-	int capacete_id = (int) (intptr_t) arranjo_retirar(&prateleira.capacete);
-	int arma_id = (int) (intptr_t) arranjo_retirar(&prateleira.arma);
+	int random_colete = aleatorio(0, arranjo_tamanho(&prateleira.colete));
+	int random_capacete = aleatorio(0, arranjo_tamanho(&prateleira.capacete));
+	int random_arma = aleatorio(0, arranjo_tamanho(&prateleira.arma));
+
+	int colete_id = (int) (intptr_t) arranjo_pop(&prateleira.colete, random_colete);
+	int capacete_id = (int) (intptr_t) arranjo_pop(&prateleira.capacete, random_capacete);
+	int arma_id = (int) (intptr_t) arranjo_pop(&prateleira.arma, random_arma);
 
 	equipamentos->colete = colete_id;
 	equipamentos->capacete = capacete_id;

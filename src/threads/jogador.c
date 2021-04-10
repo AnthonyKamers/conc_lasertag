@@ -296,12 +296,12 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 			// 	jogador->status
 			// );
 
-			plog("------------------->> jogador %d tirou %d de vida do jogador %d q está com vida %d \n", 
-				jogador->id,
-				dano_now,
-				inimigo_ataque->id,
-				inimigo_ataque->vida
-			);
+			// plog("------------------->> jogador %d tirou %d de vida do jogador %d q está com vida %d \n", 
+			// 	jogador->id,
+			// 	dano_now,
+			// 	inimigo_ataque->id,
+			// 	inimigo_ataque->vida
+			// );
 
 			// se jogador morreu, setta para JOGADOR_MORREU
 			// adiciona em simulador a quantidade de mortos
