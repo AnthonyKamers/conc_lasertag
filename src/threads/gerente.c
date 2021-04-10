@@ -70,7 +70,7 @@ PUBLIC void * gerente_fn(void * arg)
 		// esperar todos os jogadores entrarem em equipes
 		sem_wait(&partida->semaforo_gerente_espera_equipes);
 
-			plog("gerente liberou para PARTIDA_PREPARADA \n");
+			// plog("gerente liberou para PARTIDA_PREPARADA \n");
 			partida->status = PARTIDA_PREPARADA;
 
 			// esperar todos os jogadores estarem esperando
@@ -81,7 +81,7 @@ PUBLIC void * gerente_fn(void * arg)
 
 				// dar (jogadores_por_equipe * 2) posts em partida->semaforo_wait_partida
 				// para permitir jogadores entrarem na partida e jogar
-				plog("gerente vai fazer 2 * params->jogadores_por_equipe posts em semaforo_wait_partida \n");
+				// plog("gerente vai fazer 2 * params->jogadores_por_equipe posts em semaforo_wait_partida \n");
 				for (int i = 0; i < 2 * params->jogadores_por_equipe; i++) {
 					sem_post(&partida->semaforo_comecar_partida);
 				}
@@ -157,11 +157,11 @@ PUBLIC int gerente_partida_acabou(void) {
 		quantidade_vivos(equipeA) <= 0 ||
 		quantidade_vivos(equipeB) <= 0
 	) {
-		plog("GERENTE VAI TERMINAR PARTIDA | tempo_partida = %d | vivosA = %d | vivosB = %d \n",
-			partida->tempo_partida,
-			quantidade_vivos(equipeA),
-			quantidade_vivos(equipeB)
-		);
+		// plog("GERENTE VAI TERMINAR PARTIDA | tempo_partida = %d | vivosA = %d | vivosB = %d \n",
+		// 	partida->tempo_partida,
+		// 	quantidade_vivos(equipeA),
+		// 	quantidade_vivos(equipeB)
+		// );
 		
 		// acaba com a partida (jogadores vão parar de jogar aqui)
 		partida->status = PARTIDA_FINALIZADA;
@@ -172,7 +172,7 @@ PUBLIC int gerente_partida_acabou(void) {
 		// dar 2 * jogadores_por_equipe post em partida->semaforo_saindo_partida
 		// para liberar jogadores para conseguir sair da partida
 
-		plog("GERENTE VAI DAR POST EM semaforo_saindo_partida \n");
+		// plog("GERENTE VAI DAR POST EM semaforo_saindo_partida \n");
 		for (int i = 0; i < 2 * params->jogadores_por_equipe; i++) {
 			sem_post(&partida->semaforo_saindo_partida);
 		}

@@ -153,7 +153,7 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 		// então, acessa a outra equipe
 		if (sem_trywait(&jogadores->semaforo) == 0) {
 
-			plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
+			// plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
 			arranjo_colocar(jogadores, jogador);
 			jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
 
@@ -166,7 +166,7 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 			(arranjo_t *) &partida->equipe_a.jogadores :
 			(arranjo_t *) &partida->equipe_b.jogadores;
 
-			plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
+			// plog("vou adicionar o jogador novo na equipe %d | tamanho equipe = %d \n", equipe, arranjo_tamanho(jogadores));
 			sem_wait(&jogadores->semaforo);
 				arranjo_colocar(jogadores, jogador);
 				jogador->equipe = equipe == 0 ? EQUIPE_A : EQUIPE_B;
@@ -185,7 +185,7 @@ PRIVATE void jogador_escolhe_equipe(jogador_t * jogador)
 
 		// último jogador a entrar nas equipes vai settar semáforo do gerente para prosseguir
 		if (partida->jogadores_equipes == 2 * params->jogadores_por_equipe) {
-			plog("liberei o semáforo semaforo_gerente_espera_equipes! \n");
+			// plog("liberei o semáforo semaforo_gerente_espera_equipes! \n");
 			sem_post(&partida->semaforo_gerente_espera_equipes);
 		}
 
@@ -237,7 +237,7 @@ PRIVATE void jogador_espera_partida_comecar(jogador_t * jogador)
 		// incrementar contador de jogadores esperando
 		partida->jogadores_esperando++;
 
-		plog("partida->jogadores_esperando = %d \n", partida->jogadores_esperando);
+		// plog("partida->jogadores_esperando = %d \n", partida->jogadores_esperando);
 
 		// último jogador a esperar, vai settar semáforo do gerente para avançar e iniciar o jogo
 		if (partida->jogadores_esperando == 2 * params->jogadores_por_equipe) {
@@ -319,10 +319,10 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 		msleep(aleatorio(params->delay_min, params->delay_max));
 	}
 
-	plog("jogador saiu do while -> status jogador = %d | status partida = %d \n",
-		jogador->status,
-		partida->status
-	);
+	// plog("jogador saiu do while -> status jogador = %d | status partida = %d \n",
+	// 	jogador->status,
+	// 	partida->status
+	// );
 
 	plog("[jogador %d] Saindo do jogo.\n", jogador->id);
 }
@@ -370,7 +370,7 @@ PRIVATE void jogador_sai_equipe(jogador_t * jogador)
 	if (partida->jogadores_ja_sairam >= 2 * params->jogadores_por_equipe) {
 		// libera semáforo para gerente poder continuar e
 		// criar nova partida
-		plog("último jogador a sair vai liberar para gerente começar nova partida \n");
+		// plog("último jogador a sair vai liberar para gerente começar nova partida \n");
 		sem_post(&partida->semaforo_gerente_comeca_partida);
 	}
 }
