@@ -312,7 +312,8 @@ PRIVATE void jogador_joga_partida(jogador_t * jogador)
 		}
 
 		// arranjo_destruir(jogadores_adversarios);
-		// free(jogadores_adversarios);
+		free(jogadores_adversarios->conteudo);
+		free(jogadores_adversarios);
 
 		// esperar tempo aleatório antes de atacar novamente
 		msleep(aleatorio(params->delay_min, params->delay_max));

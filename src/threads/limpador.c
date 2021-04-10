@@ -65,6 +65,7 @@ PUBLIC void limpador_requisita_limpeza(equipamentos_t * equipamentos)
 
 	// chama função de prateleira para devolver à prateleira 
 	prateleira_libera_equipamentos(equipamentos_hold);
+	free(equipamentos_hold);
 }
 
 /*============================================================================*
