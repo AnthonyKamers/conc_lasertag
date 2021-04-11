@@ -177,7 +177,7 @@ int soma_vida_equipe(equipe_t equipe) {
 	for (int i = 0; i < arranjo_tamanho(jogadores); i++) {
 		jogador_t *jogador_now = (jogador_t *) jogadores->conteudo[i];
 
-		if (jogador_now->status == JOGADOR_JOGANDO) somaVida++;
+		if (jogador_now->status == JOGADOR_JOGANDO) somaVida += jogador_now->vida;
 	}
 
 	return somaVida;
@@ -204,7 +204,7 @@ PUBLIC void partida_nomeia_vencedores(int tempo_restante)
 	int vivosA = quantidade_vivos(partida->equipe_a);
 	int vivosB = quantidade_vivos(partida->equipe_b);
 
-	plog("tempo_restante em partida_nomeia_vencedores = %d \n", tempo_restante);
+	// plog("tempo_restante em partida_nomeia_vencedores = %d \n", tempo_restante);
 
 	if (tempo_restante <= 0) {
 		// tempo estourou

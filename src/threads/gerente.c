@@ -98,7 +98,7 @@ PUBLIC void * gerente_fn(void * arg)
 				sem_wait(&partida->semaforo_gerente_comeca_partida);
 
 				// resettar todas as configurações da partida
-				plog("gerente: vou resetar os dados da partida \n");
+				// plog("gerente: vou resetar os dados da partida \n");
 				gerente_reset_partida();
 	}
 
@@ -126,18 +126,23 @@ PRIVATE int gerente_cura_jogadores(void)
 		jogador_t *jogadorNowB = (jogador_t *) jogadoresB->conteudo[i];
 
 		// curar jogadorA[i] e jogadorB[i]
-		jogadorNowA->vida =
+		if (jogadorNowA->status == JOGADOR_JOGANDO) {
+			jogadorNowA->vida =
 			jogadorNowA->vida + params->dano_cura > 100 ?
 			100 : 
 			jogadorNowA->vida + params->dano_cura;
 
-		curados++;
+			curados++;
+		}
 
-		jogadorNowB->vida =
+		if (jogadorNowB->status == JOGADOR_JOGANDO) {
+			jogadorNowB->vida =
 			jogadorNowB->vida + params->dano_cura > 100 ?
 			100 : 
 			jogadorNowB->vida + params->dano_cura;
-		curados++;
+
+			curados++;
+		}
 	}
 
 	return (curados);
